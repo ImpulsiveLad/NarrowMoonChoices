@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 
@@ -74,5 +75,54 @@ namespace CustomDeathPenalty
             }
         }
     }
+    [HarmonyPatch(typeof(StartOfRound), "ShipHasLeft")]
+    public class ChangeQuota
+    {
+        public static int unrecoveredBodies;
+        public static int oldQuota;
+        public static int newQuota;
 
+        static void Postfix(StartOfRound __instance)
+        {
+            int playersDead = GameNetworkManager.Instance.connectedPlayers - __instance.livingPlayers;
+            int bodiesInsured = GetBodiesInShip();
+            unrecoveredBodies = playersDead - bodiesInsured;
+            if (unrecoveredBodies != 0 && ArrivalSwitch.myReferenceToGordionLevel != StartOfRound.Instance.currentLevel)
+            {
+                oldQuota = TimeOfDay.Instance.profitQuota;
+                int QuotaStep = (100 + CustomDeathPenaltyMain.QuotaIncreasePercent.Value * unrecoveredBodies) * TimeOfDay.Instance.profitQuota;
+                TimeOfDay.Instance.profitQuota = QuotaStep / 100;
+                newQuota = TimeOfDay.Instance.profitQuota;
+                CustomDeathPenaltyMain.instance.mls.LogInfo("Old Quota: " + oldQuota);
+                CustomDeathPenaltyMain.instance.mls.LogInfo("New Quota: " + newQuota);
+            }
+            else
+            {
+                CustomDeathPenaltyMain.instance.mls.LogInfo("On Company moon, no quota multiplier applied");
+            }
+        }
+
+        private static int GetBodiesInShip()
+        {
+            int num = 0;
+            DeadBodyInfo[] array = UnityEngine.Object.FindObjectsOfType<DeadBodyInfo>();
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (array[i].isInShip)
+                {
+                    num++;
+                }
+            }
+            return num;
+        }
+    }
+
+    [HarmonyPatch(typeof(HUDManager), "ApplyPenalty")]
+    public class ChangePenaltyText
+    {
+        static void Postfix(HUDManager __instance, int playersDead, int bodiesInsured)
+        {
+            __instance.statsUIElements.penaltyAddition.text += $"\nUnrecovered bodies: {ChangeQuota.unrecoveredBodies}\nQuota has increased from {ChangeQuota.oldQuota} to {ChangeQuota.newQuota}";
+        }
+    }
 }
