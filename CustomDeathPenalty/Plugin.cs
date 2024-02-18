@@ -11,7 +11,7 @@ namespace CustomDeathPenalty
     {
         private const string modGUID = "impulse.CustomDeathPenalty";
         private const string modName = "CustomDeathPenalty";
-        private const string modVersion = "1.1.0";
+        private const string modVersion = "1.1.5";
         private readonly Harmony harmony = new Harmony(modGUID);
         public ManualLogSource mls;
         public static CustomDeathPenaltyMain instance;

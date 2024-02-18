@@ -9,7 +9,6 @@ namespace CustomDeathPenalty
     public class ArrivalSwitch
     {
         public static SelectableLevel myReferenceToGordionLevel;
-
         static void Postfix(StartOfRound __instance)
         {
             if (__instance.currentLevel == myReferenceToGordionLevel)
@@ -24,7 +23,6 @@ namespace CustomDeathPenalty
             }
         }
     }
-
     public static class CustomDeathPenalty
     {
         public static float GetCurrentFineAmount()
@@ -38,7 +36,6 @@ namespace CustomDeathPenalty
                 return CustomDeathPenaltyMain.FineAmount.Value / 100;
             }
         }
-
         public static float GetCurrentInsuranceReduction()
         {
             if (StartOfRound.Instance != null && ArrivalSwitch.myReferenceToGordionLevel != null && ArrivalSwitch.myReferenceToGordionLevel == StartOfRound.Instance.currentLevel)
@@ -81,7 +78,6 @@ namespace CustomDeathPenalty
         public static int unrecoveredBodies;
         public static int oldQuota;
         public static int newQuota;
-
         static void Postfix(StartOfRound __instance)
         {
             int playersDead = GameNetworkManager.Instance.connectedPlayers - __instance.livingPlayers;
@@ -101,7 +97,6 @@ namespace CustomDeathPenalty
                 CustomDeathPenaltyMain.instance.mls.LogInfo("On Company moon, no quota multiplier applied");
             }
         }
-
         private static int GetBodiesInShip()
         {
             int num = 0;
@@ -116,13 +111,15 @@ namespace CustomDeathPenalty
             return num;
         }
     }
-
     [HarmonyPatch(typeof(HUDManager), "ApplyPenalty")]
     public class ChangePenaltyText
     {
         static void Postfix(HUDManager __instance, int playersDead, int bodiesInsured)
         {
-            __instance.statsUIElements.penaltyAddition.text += $"\nUnrecovered bodies: {ChangeQuota.unrecoveredBodies}\nQuota has increased from {ChangeQuota.oldQuota} to {ChangeQuota.newQuota}";
+            if (CustomDeathPenaltyMain.QuotaIncreasePercent.Value != 0)
+            {
+                __instance.statsUIElements.penaltyAddition.text += $"\nUnrecovered bodies: {ChangeQuota.unrecoveredBodies}\nQuota has increased from {ChangeQuota.oldQuota} to {ChangeQuota.newQuota}";
+            }
         }
     }
 }
