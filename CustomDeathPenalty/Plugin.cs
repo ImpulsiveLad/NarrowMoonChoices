@@ -11,7 +11,7 @@ namespace CustomDeathPenalty
     {
         private const string modGUID = "impulse.CustomDeathPenalty";
         private const string modName = "CustomDeathPenalty";
-        private const string modVersion = "1.0.0";
+        private const string modVersion = "1.1.0";
         private readonly Harmony harmony = new Harmony(modGUID);
         public ManualLogSource mls;
         public static CustomDeathPenaltyMain instance;
@@ -66,6 +66,8 @@ namespace CustomDeathPenalty
             harmony.PatchAll(typeof(ChangeFineAmount));
             harmony.PatchAll(typeof(ChangeQuota));
             harmony.PatchAll(typeof(ChangePenaltyText));
+            harmony.PatchAll(typeof(HUDManagerPatch));
+            harmony.PatchAll(typeof(ShipleaveCalc));
 
             mls = BepInEx.Logging.Logger.CreateLogSource(modGUID);
         }
