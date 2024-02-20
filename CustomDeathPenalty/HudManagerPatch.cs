@@ -80,7 +80,7 @@ namespace CustomDeathPenalty
         public static int newQuota;
         static void Postfix(StartOfRound __instance)
         {
-            int playersDead = GameNetworkManager.Instance.connectedPlayers - __instance.livingPlayers;
+            int playersDead = (StartOfRound.Instance.connectedPlayersAmount + 1) - __instance.livingPlayers;
             int bodiesInsured = GetBodiesInShip();
             unrecoveredBodies = playersDead - bodiesInsured;
             if (unrecoveredBodies != 0 && ArrivalSwitch.myReferenceToGordionLevel != StartOfRound.Instance.currentLevel)
