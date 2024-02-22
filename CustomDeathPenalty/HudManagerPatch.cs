@@ -122,4 +122,28 @@ namespace CustomDeathPenalty
             }
         }
     }
+    [HarmonyPatch(typeof(RoundManager), "SpawnScrapInLevel")]
+    public static class DynamicScrapSpawn
+    {
+        [HarmonyPrefix]
+        public static void Postfix(RoundManager __instance)
+        {
+            SelectableLevel currentLevel = __instance.currentLevel;
+            if (CustomDeathPenaltyMain.DynamicScrapBool.Value == true)
+            {
+                currentLevel.minTotalScrapValue = ((int)(TimeOfDay.Instance.profitQuota * 1/2 * ((float)currentLevel.maxEnemyPowerCount / 5)) + CustomDeathPenaltyMain.ScrapValueOffset.Value);
+                currentLevel.maxTotalScrapValue = ((int)(TimeOfDay.Instance.profitQuota * 3/2 * ((float)currentLevel.maxEnemyPowerCount / 5)) + CustomDeathPenaltyMain.ScrapValueOffset.Value);
+                currentLevel.maxScrap = currentLevel.minTotalScrapValue / 20;
+                currentLevel.minScrap = (int)Math.Round(currentLevel.maxScrap * (float)3 / 5);
+                CustomDeathPenaltyMain.instance.mls.LogInfo($"minScrap: {currentLevel.minScrap}");
+                CustomDeathPenaltyMain.instance.mls.LogInfo($"maxScrap: {currentLevel.maxScrap}");
+                CustomDeathPenaltyMain.instance.mls.LogInfo($"minTotalScrapValue: {currentLevel.minTotalScrapValue}");
+                CustomDeathPenaltyMain.instance.mls.LogInfo($"maxTotalScrapValue: {currentLevel.maxTotalScrapValue}");
+            }
+            else
+            {
+                CustomDeathPenaltyMain.instance.mls.LogInfo("Dynamic Scrap is disabled, spawning scrap the vanilla way.");
+            }
+        }
+    }
 }
