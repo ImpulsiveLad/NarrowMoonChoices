@@ -131,7 +131,7 @@ namespace CustomDeathPenalty
             SelectableLevel currentLevel = __instance.currentLevel;
             if (CustomDeathPenaltyMain.DynamicScrapBool.Value == true)
             {
-                currentLevel.minTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (CustomDeathPenaltyMain.MinDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / CustomDeathPenaltyMain.EnemyThreshhold.Value) +1)) + CustomDeathPenaltyMain.ScrapValueOffset.Value;
+                currentLevel.minTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (CustomDeathPenaltyMain.MinDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / CustomDeathPenaltyMain.EnemyThreshhold.Value) + 1)) + CustomDeathPenaltyMain.ScrapValueOffset.Value;
                 currentLevel.maxTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (CustomDeathPenaltyMain.MaxDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / CustomDeathPenaltyMain.EnemyThreshhold.Value) + 1)) + CustomDeathPenaltyMain.ScrapValueOffset.Value;
                 currentLevel.maxScrap = currentLevel.minTotalScrapValue / 20;
                 currentLevel.minScrap = (int)Math.Round(currentLevel.maxScrap * (float)3 / 5);
