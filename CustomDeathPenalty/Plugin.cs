@@ -11,7 +11,7 @@ namespace CustomDeathPenalty
     {
         private const string modGUID = "impulse.CustomDeathPenalty";
         private const string modName = "CustomDeathPenalty";
-        private const string modVersion = "1.3.0";
+        private const string modVersion = "1.4.0";
         private readonly Harmony harmony = new Harmony(modGUID);
         public ManualLogSource mls;
         public static CustomDeathPenaltyMain instance;
@@ -22,6 +22,9 @@ namespace CustomDeathPenalty
         public static ConfigEntry<int> QuotaIncreasePercent;
         public static ConfigEntry<bool> DynamicScrapBool;
         public static ConfigEntry<int> ScrapValueOffset;
+        public static ConfigEntry<int> EnemyThreshhold;
+        public static ConfigEntry<float> MinDiff;
+        public static ConfigEntry<float> MaxDiff;
         public static float CurrentFineAmount { get; set; }
         public static float CurrentInsuranceReduction { get; set; }
         void Awake()
@@ -59,7 +62,7 @@ namespace CustomDeathPenalty
                 (AcceptableValueBase)(object)new AcceptableValueRange<int>(0, 99999), Array.Empty<object>()));
 
             DynamicScrapBool = ((BaseUnityPlugin)this).Config.Bind<bool>("Misc",
-                "Dynamic Scrap",
+                "Dynamic Scrap Calculation",
                 false,
                 new ConfigDescription("Set to true to enable. This setting makes the scrap value scale based on the current quota and the enemy power level of the moon. This generally makes the game harder but can allow for reaching higher quotas than typically possible."));
 
@@ -68,6 +71,24 @@ namespace CustomDeathPenalty
                 100,
                 new ConfigDescription("This value determines how much extra scrap value should be added to each moon. This value takes the apparatus into account and therefore must be equal to or higher than its value. (80 is the vanilla apparatus value, if you use FacilityMeltdown to make the apparatus worth 300 for instance. You MUST set this value to 300 or higher.)",
                 (AcceptableValueBase)(object)new AcceptableValueRange<int>(0, 99999), Array.Empty<object>()));
+
+            EnemyThreshhold = ((BaseUnityPlugin)this).Config.Bind<int>("Misc",
+                "Enemy Threshhold",
+                10,
+                new ConfigDescription("Every time the Interior Enemy Power Count of a moon exceeds this value, 1 will be added to a difficulty multiplier. With the value at 5, a moon with an interior power of 14 will have a difficulty adjustment of 3x. if the value is 10, then the moon will only have a difficulty adjustment of 2x. If it were 3 then it would have a difficulty adjustment of 5x. Etc.",
+                (AcceptableValueBase)(object)new AcceptableValueRange<int>(1, 99999), Array.Empty<object>()));
+
+            MinDiff = ((BaseUnityPlugin)this).Config.Bind<float>("Misc",
+                "Multiplier for Min Scrap Value",
+                50f,
+                new ConfigDescription("The percent of the quota the min scrap on a planet should be. Min < Max. The difficulty multiplier and Offset are applied after.",
+                (AcceptableValueBase)(object)new AcceptableValueRange<float>(1f, 99999f), Array.Empty<object>()));
+
+            MaxDiff = ((BaseUnityPlugin)this).Config.Bind<float>("Misc",
+                "Multiplier for Max Scrap Value",
+                100f,
+                new ConfigDescription("The percent of the quota the max scrap on a planet should be. Max > Min. The difficulty multiplier and Offset are applied after.",
+                (AcceptableValueBase)(object)new AcceptableValueRange<float>(1f, 99999f), Array.Empty<object>()));
 
             CurrentFineAmount = FineAmount.Value;
             CurrentInsuranceReduction = InsuranceReduction.Value;
