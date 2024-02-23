@@ -22,7 +22,7 @@ namespace CustomDeathPenalty
         public static ConfigEntry<int> QuotaIncreasePercent;
         public static ConfigEntry<bool> DynamicScrapBool;
         public static ConfigEntry<int> ScrapValueOffset;
-        public static ConfigEntry<int> EnemyThreshhold;
+        public static ConfigEntry<int> EnemyThreshold;
         public static ConfigEntry<float> MinDiff;
         public static ConfigEntry<float> MaxDiff;
         public static float CurrentFineAmount { get; set; }
@@ -72,8 +72,8 @@ namespace CustomDeathPenalty
                 new ConfigDescription("This value determines how much extra scrap value should be added to each moon. This value takes the apparatus into account and therefore must be equal to or higher than its value. (80 is the vanilla apparatus value, if you use FacilityMeltdown to make the apparatus worth 300 for instance. You MUST set this value to 300 or higher.)",
                 (AcceptableValueBase)(object)new AcceptableValueRange<int>(0, 99999), Array.Empty<object>()));
 
-            EnemyThreshhold = ((BaseUnityPlugin)this).Config.Bind<int>("Misc",
-                "Enemy Power Threshhold",
+            EnemyThreshold = ((BaseUnityPlugin)this).Config.Bind<int>("Misc",
+                "Enemy Power Threshold",
                 8,
                 new ConfigDescription("Every time the Interior Enemy Power Count of a moon exceeds this value, 1 will be added to a difficulty multiplier. With the value at 5, a moon with an interior power of 14 will have a difficulty adjustment of 3x. if the value is 10, then the moon will only have a difficulty adjustment of 2x. If it were 3 then it would have a difficulty adjustment of 5x. Etc.",
                 (AcceptableValueBase)(object)new AcceptableValueRange<int>(1, 99999), Array.Empty<object>()));
