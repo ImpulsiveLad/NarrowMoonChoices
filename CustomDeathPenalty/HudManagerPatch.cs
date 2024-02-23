@@ -13,13 +13,13 @@ namespace CustomDeathPenalty
         {
             if (__instance.currentLevel == myReferenceToGordionLevel)
             {
-                CustomDeathPenaltyMain.CurrentFineAmount = CustomDeathPenaltyMain.CompanyFineAmount.Value;
-                CustomDeathPenaltyMain.CurrentInsuranceReduction = CustomDeathPenaltyMain.CompanyInsuranceReduction.Value;
+                SyncConfig.CurrentFineAmount = SyncConfig.CompanyFineAmount.Value;
+                SyncConfig.CurrentInsuranceReduction = SyncConfig.CompanyInsuranceReduction.Value;
             }
             else
             {
-                CustomDeathPenaltyMain.CurrentFineAmount = CustomDeathPenaltyMain.FineAmount.Value;
-                CustomDeathPenaltyMain.CurrentInsuranceReduction = CustomDeathPenaltyMain.InsuranceReduction.Value;
+                SyncConfig.CurrentFineAmount = SyncConfig.FineAmount.Value;
+                SyncConfig.CurrentInsuranceReduction = SyncConfig.InsuranceReduction.Value;
             }
         }
     }
@@ -29,22 +29,22 @@ namespace CustomDeathPenalty
         {
             if (StartOfRound.Instance != null && ArrivalSwitch.myReferenceToGordionLevel != null && ArrivalSwitch.myReferenceToGordionLevel == StartOfRound.Instance.currentLevel)
             {
-                return CustomDeathPenaltyMain.CompanyFineAmount.Value / 100;
+                return SyncConfig.CompanyFineAmount.Value / 100;
             }
             else
             {
-                return CustomDeathPenaltyMain.FineAmount.Value / 100;
+                return SyncConfig.FineAmount.Value / 100;
             }
         }
         public static float GetCurrentInsuranceReduction()
         {
             if (StartOfRound.Instance != null && ArrivalSwitch.myReferenceToGordionLevel != null && ArrivalSwitch.myReferenceToGordionLevel == StartOfRound.Instance.currentLevel)
             {
-                return 1 / (CustomDeathPenaltyMain.CompanyInsuranceReduction.Value / 100);
+                return 1 / (SyncConfig.CompanyInsuranceReduction.Value / 100);
             }
             else
             {
-                return 1 / (CustomDeathPenaltyMain.InsuranceReduction.Value / 100);
+                return 1 / (SyncConfig.InsuranceReduction.Value / 100);
             }
         }
     }
@@ -86,7 +86,7 @@ namespace CustomDeathPenalty
             if (unrecoveredBodies != 0 && ArrivalSwitch.myReferenceToGordionLevel != StartOfRound.Instance.currentLevel)
             {
                 oldQuota = TimeOfDay.Instance.profitQuota;
-                int QuotaStep = (100 + CustomDeathPenaltyMain.QuotaIncreasePercent.Value * unrecoveredBodies) * TimeOfDay.Instance.profitQuota;
+                int QuotaStep = (100 + SyncConfig.QuotaIncreasePercent.Value * unrecoveredBodies) * TimeOfDay.Instance.profitQuota;
                 TimeOfDay.Instance.profitQuota = QuotaStep / 100;
                 newQuota = TimeOfDay.Instance.profitQuota;
                 CustomDeathPenaltyMain.instance.mls.LogInfo("Old Quota: " + oldQuota);
@@ -116,7 +116,7 @@ namespace CustomDeathPenalty
     {
         static void Postfix(HUDManager __instance, int playersDead, int bodiesInsured)
         {
-            if (CustomDeathPenaltyMain.QuotaIncreasePercent.Value != 0)
+            if (SyncConfig.QuotaIncreasePercent.Value != 0)
             {
                 __instance.statsUIElements.penaltyAddition.text += $"\nUnrecovered bodies: {ChangeQuota.unrecoveredBodies}\nQuota has increased from {ChangeQuota.oldQuota} to {ChangeQuota.newQuota}";
             }
@@ -129,10 +129,10 @@ namespace CustomDeathPenalty
         public static void Postfix(RoundManager __instance)
         {
             SelectableLevel currentLevel = __instance.currentLevel;
-            if (CustomDeathPenaltyMain.DynamicScrapBool.Value == true && ArrivalSwitch.myReferenceToGordionLevel != StartOfRound.Instance.currentLevel)
+            if (SyncConfig.DynamicScrapBool.Value == true && ArrivalSwitch.myReferenceToGordionLevel != StartOfRound.Instance.currentLevel)
             {
-                currentLevel.minTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (CustomDeathPenaltyMain.MinDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / CustomDeathPenaltyMain.EnemyThreshold.Value) + 1)) + CustomDeathPenaltyMain.ScrapValueOffset.Value;
-                currentLevel.maxTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (CustomDeathPenaltyMain.MaxDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / CustomDeathPenaltyMain.EnemyThreshold.Value) + 1)) + CustomDeathPenaltyMain.ScrapValueOffset.Value;
+                currentLevel.minTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (SyncConfig.MinDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / SyncConfig.EnemyThreshold.Value) + 1)) + SyncConfig.ScrapValueOffset.Value;
+                currentLevel.maxTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (SyncConfig.MaxDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / SyncConfig.EnemyThreshold.Value) + 1)) + SyncConfig.ScrapValueOffset.Value;
                 currentLevel.maxScrap = currentLevel.minTotalScrapValue / 25;
                 if ((float)currentLevel.minTotalScrapValue / 333 < 1)
                 {
