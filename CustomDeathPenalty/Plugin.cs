@@ -92,7 +92,7 @@ namespace CustomDeathPenalty
             CurrentFineAmount = FineAmount.Value;
             CurrentInsuranceReduction = InsuranceReduction.Value;
 
-            AcceptableRanges()
+            AcceptableRanges();
         }
         public void AcceptableRanges()
         {
