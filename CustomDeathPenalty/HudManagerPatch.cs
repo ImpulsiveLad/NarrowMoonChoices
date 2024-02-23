@@ -129,12 +129,27 @@ namespace CustomDeathPenalty
         public static void Postfix(RoundManager __instance)
         {
             SelectableLevel currentLevel = __instance.currentLevel;
-            if (CustomDeathPenaltyMain.DynamicScrapBool.Value == true)
+            if (CustomDeathPenaltyMain.DynamicScrapBool.Value == true && ArrivalSwitch.myReferenceToGordionLevel != StartOfRound.Instance.currentLevel)
             {
                 currentLevel.minTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (CustomDeathPenaltyMain.MinDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / CustomDeathPenaltyMain.EnemyThreshold.Value) + 1)) + CustomDeathPenaltyMain.ScrapValueOffset.Value;
                 currentLevel.maxTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (CustomDeathPenaltyMain.MaxDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / CustomDeathPenaltyMain.EnemyThreshold.Value) + 1)) + CustomDeathPenaltyMain.ScrapValueOffset.Value;
-                currentLevel.maxScrap = currentLevel.minTotalScrapValue / 20;
-                currentLevel.minScrap = (int)Math.Round(currentLevel.maxScrap * (float)3 / 5);
+                currentLevel.maxScrap = currentLevel.minTotalScrapValue / 25;
+                if ((float)currentLevel.minTotalScrapValue / 333 < 1)
+                {
+                    currentLevel.minScrap = (int)Math.Round(currentLevel.maxScrap * (float)4 / 5);
+                }
+                else if ((float)currentLevel.minTotalScrapValue / 333 < 2)
+                {
+                    currentLevel.minScrap = (int)Math.Round(currentLevel.maxScrap * (float)3 / 5);
+                }
+                else if ((float)currentLevel.minTotalScrapValue / 333 < 3)
+                {
+                    currentLevel.minScrap = (int)Math.Round(currentLevel.maxScrap * (float)2 / 5);
+                }
+                else
+                {
+                    currentLevel.minScrap = (int)Math.Round(currentLevel.maxScrap * (float)1 / 5);
+                }
                 CustomDeathPenaltyMain.instance.mls.LogInfo($"minScrap: {currentLevel.minScrap}");
                 CustomDeathPenaltyMain.instance.mls.LogInfo($"maxScrap: {currentLevel.maxScrap}");
                 CustomDeathPenaltyMain.instance.mls.LogInfo($"minTotalScrapValue: {currentLevel.minTotalScrapValue}");
@@ -142,7 +157,7 @@ namespace CustomDeathPenalty
             }
             else
             {
-                CustomDeathPenaltyMain.instance.mls.LogInfo("Dynamic Scrap is disabled, spawning scrap the vanilla way.");
+                CustomDeathPenaltyMain.instance.mls.LogInfo("Dynamic Scrap is either disabled or you are on the Company Moon.");
             }
         }
     }
