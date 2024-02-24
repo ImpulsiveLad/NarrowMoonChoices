@@ -13,17 +13,18 @@ namespace CustomDeathPenalty
     {
         private const string modGUID = "impulse.CustomDeathPenalty";
         private const string modName = "CustomDeathPenalty";
-        private const string modVersion = "1.4.0";
+        private const string modVersion = "1.5.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
 
         public static CustomDeathPenaltyMain instance;
+        public new static SyncConfig Config;
         void Awake()
         {
             instance = this;
 
-            _ = new SyncConfig(Config);
+            Config = new SyncConfig(base.Config);
 
             harmony.PatchAll(typeof(StartOfRound_Awake_Patch));
             harmony.PatchAll(typeof(CustomDeathPenalty));
@@ -42,16 +43,16 @@ namespace CustomDeathPenalty
     [DataContract]
     public class SyncConfig : SyncedInstance<SyncConfig>
     {
-        [DataMember] public static SyncedEntry<float> FineAmount { get; private set; }
-        [DataMember] public static SyncedEntry<float> InsuranceReduction { get; private set; }
-        [DataMember] public static SyncedEntry<float> CompanyFineAmount { get; private set; }
-        [DataMember] public static SyncedEntry<float> CompanyInsuranceReduction { get; private set; }
-        [DataMember] public static SyncedEntry<int> QuotaIncreasePercent { get; private set; }
-        [DataMember] public static SyncedEntry<bool> DynamicScrapBool { get; private set; }
-        [DataMember] public static SyncedEntry<int> ScrapValueOffset { get; private set; }
-        [DataMember] public static SyncedEntry<int> EnemyThreshold { get; private set; }
-        [DataMember] public static SyncedEntry<float> MinDiff { get; private set; }
-        [DataMember] public static SyncedEntry<float> MaxDiff { get; private set; }
+        [DataMember] public SyncedEntry<float> FineAmount { get; private set; }
+        [DataMember] public SyncedEntry<float> InsuranceReduction { get; private set; }
+        [DataMember] public SyncedEntry<float> CompanyFineAmount { get; private set; }
+        [DataMember] public SyncedEntry<float> CompanyInsuranceReduction { get; private set; }
+        [DataMember] public SyncedEntry<int> QuotaIncreasePercent { get; private set; }
+        [DataMember] public SyncedEntry<bool> DynamicScrapBool { get; private set; }
+        [DataMember] public SyncedEntry<int> ScrapValueOffset { get; private set; }
+        [DataMember] public SyncedEntry<int> EnemyThreshold { get; private set; }
+        [DataMember] public SyncedEntry<float> MinDiff { get; private set; }
+        [DataMember] public SyncedEntry<float> MaxDiff { get; private set; }
         public static float CurrentFineAmount { get; set; }
         public static float CurrentInsuranceReduction { get; set; }
         public SyncConfig(ConfigFile cfg)
@@ -92,7 +93,7 @@ namespace CustomDeathPenalty
             CurrentFineAmount = FineAmount.Value;
             CurrentInsuranceReduction = InsuranceReduction.Value;
 
-            AcceptableRanges()
+            AcceptableRanges();
         }
         public void AcceptableRanges()
         {
@@ -135,6 +136,12 @@ namespace CustomDeathPenalty
             float maxDiff = MaxDiff.Value;
             if (maxDiff < 1) maxDiff = 1;
             MaxDiff.Value = maxDiff;
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(GameNetworkManager), "StartDisconnect")]
+        public static void PlayerLeave()
+        {
+            RevertSync();
         }
     }
 }
