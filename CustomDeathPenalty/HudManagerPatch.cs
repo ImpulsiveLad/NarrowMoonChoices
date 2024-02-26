@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using UnityEngine;
 
 namespace CustomDeathPenalty
 {
@@ -158,6 +159,26 @@ namespace CustomDeathPenalty
             else
             {
                 CustomDeathPenaltyMain.instance.mls.LogInfo("Dynamic Scrap is either disabled or you are on the Company Moon.");
+            }
+        }
+    }
+    [HarmonyPatch(typeof(RoundManager), "GenerateNewFloor")]
+    public static class DynamicInteriorSize
+    {
+        [HarmonyPrefix]
+        public static void Postfix(RoundManager __instance)
+        {
+            SelectableLevel currentLevel = __instance.currentLevel;
+            if (SyncConfig.Instance.DynamicSizeBool.Value == true && ArrivalSwitch.myReferenceToGordionLevel != StartOfRound.Instance.currentLevel)
+            {
+                int MinScrapPrediction = (int)(TimeOfDay.Instance.profitQuota * (SyncConfig.Instance.MinDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / SyncConfig.Instance.EnemyThreshold.Value) + 1)) + SyncConfig.Instance.ScrapValueOffset.Value;
+                currentLevel.factorySizeMultiplier = ((float)((int)(MinScrapPrediction / SyncConfig.Instance.SizeScrapThreshold.Value)) / 100) + 0;
+                currentLevel.factorySizeMultiplier = Mathf.Clamp(currentLevel.factorySizeMultiplier, SyncConfig.Instance.MinSizeClamp.Value, SyncConfig.Instance.MaxSizeClamp.Value);
+                CustomDeathPenaltyMain.instance.mls.LogInfo($"factorySizeMultiplier: {currentLevel.factorySizeMultiplier}");
+            }
+            else
+            {
+                CustomDeathPenaltyMain.instance.mls.LogInfo("Dynamic Size is disabled.");
             }
         }
     }
