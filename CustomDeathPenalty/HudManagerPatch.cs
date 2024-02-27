@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 
@@ -172,7 +174,7 @@ namespace CustomDeathPenalty
             if (SyncConfig.Instance.DynamicSizeBool.Value == true && ArrivalSwitch.myReferenceToGordionLevel != StartOfRound.Instance.currentLevel)
             {
                 int MinScrapPrediction = (int)(TimeOfDay.Instance.profitQuota * (SyncConfig.Instance.MinDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / SyncConfig.Instance.EnemyThreshold.Value) + 1)) + SyncConfig.Instance.ScrapValueOffset.Value;
-                currentLevel.factorySizeMultiplier = ((float)((int)(MinScrapPrediction / SyncConfig.Instance.SizeScrapThreshold.Value)) / 100) + 0;
+                currentLevel.factorySizeMultiplier = ((float)((int)(MinScrapPrediction / SyncConfig.Instance.SizeScrapThreshold.Value)) / 100) + SyncConfig.Instance.SizeOffset.Value;
                 currentLevel.factorySizeMultiplier = Mathf.Clamp(currentLevel.factorySizeMultiplier, SyncConfig.Instance.MinSizeClamp.Value, SyncConfig.Instance.MaxSizeClamp.Value);
                 CustomDeathPenaltyMain.instance.mls.LogInfo($"factorySizeMultiplier: {currentLevel.factorySizeMultiplier}");
             }

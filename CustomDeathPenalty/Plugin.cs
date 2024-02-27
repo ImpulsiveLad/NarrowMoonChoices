@@ -13,7 +13,7 @@ namespace CustomDeathPenalty
     {
         private const string modGUID = "impulse.CustomDeathPenalty";
         private const string modName = "CustomDeathPenalty";
-        private const string modVersion = "1.6.0";
+        private const string modVersion = "1.7.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -42,7 +42,7 @@ namespace CustomDeathPenalty
         }
     }
     [DataContract]
-    public class SyncConfig : SyncedInstance<SyncConfig>
+    public class SyncConfig : SyncedConfig<SyncConfig>
     {
         [DataMember] public SyncedEntry<float> FineAmount { get; private set; }
         [DataMember] public SyncedEntry<float> InsuranceReduction { get; private set; }
@@ -61,10 +61,9 @@ namespace CustomDeathPenalty
         [DataMember] public SyncedEntry<float> MaxSizeClamp { get; private set; }
         public static float CurrentFineAmount { get; set; }
         public static float CurrentInsuranceReduction { get; set; }
-        public SyncConfig(ConfigFile cfg)
+        public SyncConfig(ConfigFile cfg) : base("CustomDeathPenalty")
         {
-
-            EasySync.SyncManager.RegisterForSyncing(this, "impulse.CustomDeathPenalty");
+            ConfigManager.Register(this);
 
             FineAmount = cfg.BindSyncedEntry("2. Fines", "Fine for each dead player", 20f, "What percent of current credits should be taken for each dead player. Range 0 to 100");
 
@@ -158,12 +157,6 @@ namespace CustomDeathPenalty
             float maxSizeClamp = MaxSizeClamp.Value;
             if (maxSizeClamp < 0) maxSizeClamp = 0;
             MaxSizeClamp.Value = maxSizeClamp;
-        }
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(GameNetworkManager), "StartDisconnect")]
-        public static void PlayerLeave()
-        {
-            RevertSync();
         }
     }
 }
