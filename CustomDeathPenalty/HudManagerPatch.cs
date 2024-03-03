@@ -96,7 +96,7 @@ namespace CustomDeathPenalty
                 }
                 else
                 {
-                    int QuotaStep2 = (int)(((float)(unrecoveredBodies / StartOfRound.Instance.connectedPlayersAmount) * (SyncConfig.Instance.DynamicQuotaPercent.Value / 100) + 1) * 100);
+                    int QuotaStep2 = (int)(((float)(unrecoveredBodies / (StartOfRound.Instance.connectedPlayersAmount + 1)) * (SyncConfig.Instance.DynamicQuotaPercent.Value / 100) + 1) * 100);
                     TimeOfDay.Instance.profitQuota *= QuotaStep2 / 100;
                 }
                 newQuota = TimeOfDay.Instance.profitQuota;
