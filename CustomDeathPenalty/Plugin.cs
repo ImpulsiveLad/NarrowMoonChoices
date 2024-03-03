@@ -13,7 +13,7 @@ namespace CustomDeathPenalty
     {
         private const string modGUID = "impulse.CustomDeathPenalty";
         private const string modName = "CustomDeathPenalty";
-        private const string modVersion = "1.7.0";
+        private const string modVersion = "1.7.5";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -59,6 +59,8 @@ namespace CustomDeathPenalty
         [DataMember] public SyncedEntry<float> SizeOffset { get; private set; }
         [DataMember] public SyncedEntry<float> MinSizeClamp { get; private set; }
         [DataMember] public SyncedEntry<float> MaxSizeClamp { get; private set; }
+        [DataMember] public SyncedEntry<bool> PlayerCountBasedPenalty { get; private set; }
+        [DataMember] public SyncedEntry<int> DynamicQuotaPercent { get; private set; }
         public static float CurrentFineAmount { get; set; }
         public static float CurrentInsuranceReduction { get; set; }
         public SyncConfig(ConfigFile cfg) : base("CustomDeathPenalty")
@@ -74,6 +76,10 @@ namespace CustomDeathPenalty
             CompanyInsuranceReduction = cfg.BindSyncedEntry("2. Fines", "Fine reduction for retrieving the players body (on Gordion)", 0f, "This value decides how much the penalty should be reduced if the dead player's body is retrieved. For example: 0 results in no fine for recovered bodies, 50 results in being fined half for retriving the body, and 100 results in no difference whether the body is recovered or not. Range 0 to 100");
 
             QuotaIncreasePercent = cfg.BindSyncedEntry("1. Quota", "Quota Increase Percent", 10, "This value determines how much the quota should increase per dead player that is not retrived. 0 will not increase the quota, 10 increases the quota by 10% per missing player, 50 by 50%, 100 by 100% and so on. Range 0 to \u221E");
+
+            PlayerCountBasedPenalty = cfg.BindSyncedEntry("1. Quota", "Dynamic Quota Increase", false, "If set to true, the quota increase will instead be a set value times the ratio of unrecovered bodies over the total players.");
+
+            DynamicQuotaPercent = cfg.BindSyncedEntry("1. Quota", "Dynamic Quota Percent", 100, "If all players are dead, the quota will increase by this amount. If only some of the players are unrecovered then the quota will increase based on the fraction of the lobby that is dead and unrecovered. Range 0 to \u221E");
 
             DynamicScrapBool = cfg.BindSyncedEntry("3. Dynamic Scrap", "Dynamic Scrap Calculation", false, "Set to true to enable. This setting makes the scrap value scale based on the current quota and the enemy power level of the moon. This generally makes the game harder but can allow for reaching higher quotas than typically possible.");
 

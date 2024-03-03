@@ -89,8 +89,16 @@ namespace CustomDeathPenalty
             if (unrecoveredBodies != 0 && ArrivalSwitch.myReferenceToGordionLevel != StartOfRound.Instance.currentLevel)
             {
                 oldQuota = TimeOfDay.Instance.profitQuota;
-                int QuotaStep = (100 + SyncConfig.Instance.QuotaIncreasePercent.Value * unrecoveredBodies) * TimeOfDay.Instance.profitQuota;
-                TimeOfDay.Instance.profitQuota = QuotaStep / 100;
+                if (SyncConfig.Instance.PlayerCountBasedPenalty.Value == false)
+                {
+                    int QuotaStep = (100 + SyncConfig.Instance.QuotaIncreasePercent.Value * unrecoveredBodies) * TimeOfDay.Instance.profitQuota;
+                    TimeOfDay.Instance.profitQuota = QuotaStep / 100;
+                }
+                else
+                {
+                    int QuotaStep2 = (int)(((float)(unrecoveredBodies / StartOfRound.Instance.connectedPlayersAmount) * (SyncConfig.Instance.DynamicQuotaPercent.Value / 100) + 1) * 100);
+                    TimeOfDay.Instance.profitQuota *= QuotaStep2 / 100;
+                }
                 newQuota = TimeOfDay.Instance.profitQuota;
                 CustomDeathPenaltyMain.instance.mls.LogInfo("Old Quota: " + oldQuota);
                 CustomDeathPenaltyMain.instance.mls.LogInfo("New Quota: " + newQuota);
