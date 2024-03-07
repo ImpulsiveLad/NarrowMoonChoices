@@ -61,6 +61,7 @@ namespace CustomDeathPenalty
         [DataMember] public SyncedEntry<float> MaxSizeClamp { get; private set; }
         [DataMember] public SyncedEntry<bool> PlayerCountBasedPenalty { get; private set; }
         [DataMember] public SyncedEntry<int> DynamicQuotaPercent { get; private set; }
+        [DataMember] public SyncedEntry<float> EnemyThresholdWeight { get; private set; }
         public static float CurrentFineAmount { get; set; }
         public static float CurrentInsuranceReduction { get; set; }
         public SyncConfig(ConfigFile cfg) : base("CustomDeathPenalty")
@@ -85,7 +86,9 @@ namespace CustomDeathPenalty
 
             ScrapValueOffset = cfg.BindSyncedEntry("3. Dynamic Scrap", "Scrap Value Offset", 100, "This value determines how much extra scrap value should be added to each moon. This value takes the apparatus into account and therefore must be equal to or higher than its value. (80 is the vanilla apparatus value, if you use FacilityMeltdown to make the apparatus worth 300 for instance. You MUST set this value to 300 or higher.) Range 0 to \u221E");
 
-            EnemyThreshold = cfg.BindSyncedEntry("3. Dynamic Scrap", "Enemy Power Threshold", 8, "Every time the Interior Enemy Power Count of a moon exceeds this value, 1 will be added to a difficulty multiplier. With the value at 5, a moon with an interior power of 14 will have a difficulty adjustment of 3x. if the value is 10, then the moon will only have a difficulty adjustment of 2x. If it were 3 then it would have a difficulty adjustment of 5x. Etc. Range 1 to \u221E");
+            EnemyThreshold = cfg.BindSyncedEntry("3. Dynamic Scrap", "Enemy Power Threshold", 8, "Every time the Interior Enemy Power Count of a moon exceeds this value, 0.XX (see next setting) will be added to 1, this multiplier is then applied to the scrap value calculation. With the value at 3, a moon with an interior power of 14 will have a difficulty adjustment of 4 * 0.XX + 1. if the value is 5, then the moon will only have a difficulty adjustment of 2 * 0.XX + 1. Etc. Range 1 to \u221E");
+
+            EnemyThresholdWeight = cfg.BindSyncedEntry("3. Dynamic Scrap", "Enemy Power Threshold Weight", 25f, "This setting controls the % increase of the enemy factor in the dynamic scrap calculation. 25% will make it so that each time that the current moons interior enemy power count exceeds the setting able, 0.25 will be added to the 1 in the multipler. If it is exceeded 3 times for instance then the scrap will be multiplied by 1.75. Range 0 to \u221E");
 
             MinDiff = cfg.BindSyncedEntry("3. Dynamic Scrap", "Multiplier for Min Scrap Value", 50f, "The percent of the quota the min scrap on a planet should be. Min < Max. The difficulty multiplier and Offset are applied after. Range 1 to \u221E");
 
@@ -163,6 +166,14 @@ namespace CustomDeathPenalty
             float maxSizeClamp = MaxSizeClamp.Value;
             if (maxSizeClamp < 0) maxSizeClamp = 0;
             MaxSizeClamp.Value = maxSizeClamp;
+
+            int dynamicQuotaPercent = DynamicQuotaPercent.Value;
+            if (dynamicQuotaPercent < 0)  dynamicQuotaPercent = 0;
+            DynamicQuotaPercent.Value = dynamicQuotaPercent;
+
+            float enemyThresholdWeight = EnemyThresholdWeight.Value;
+            if (enemyThresholdWeight < 0) enemyThresholdWeight = 0;
+            EnemyThresholdWeight.Value = enemyThresholdWeight;
         }
     }
 }

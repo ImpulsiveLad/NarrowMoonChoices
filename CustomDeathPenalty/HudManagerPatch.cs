@@ -140,10 +140,12 @@ namespace CustomDeathPenalty
         public static void Postfix(RoundManager __instance)
         {
             SelectableLevel currentLevel = __instance.currentLevel;
+            float EnemyFactor = ((currentLevel.maxEnemyPowerCount / SyncConfig.Instance.EnemyThreshold.Value) / (1 / (SyncConfig.Instance.EnemyThresholdWeight.Value / 100))) + 1;
+            CustomDeathPenaltyMain.instance.mls.LogInfo($"EnemyFactor: {EnemyFactor}");
             if (SyncConfig.Instance.DynamicScrapBool.Value == true && ArrivalSwitch.myReferenceToGordionLevel != StartOfRound.Instance.currentLevel)
             {
-                currentLevel.minTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (SyncConfig.Instance.MinDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / SyncConfig.Instance.EnemyThreshold.Value) + 1)) + SyncConfig.Instance.ScrapValueOffset.Value;
-                currentLevel.maxTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (SyncConfig.Instance.MaxDiff.Value / 100) * (((int)currentLevel.maxEnemyPowerCount / SyncConfig.Instance.EnemyThreshold.Value) + 1)) + SyncConfig.Instance.ScrapValueOffset.Value;
+                currentLevel.minTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (SyncConfig.Instance.MinDiff.Value / 100) * EnemyFactor) + SyncConfig.Instance.ScrapValueOffset.Value;
+                currentLevel.maxTotalScrapValue = (int)(TimeOfDay.Instance.profitQuota * (SyncConfig.Instance.MaxDiff.Value / 100) * EnemyFactor) + SyncConfig.Instance.ScrapValueOffset.Value;
                 currentLevel.maxScrap = currentLevel.minTotalScrapValue / 25;
                 if ((float)currentLevel.minTotalScrapValue / 333 < 1)
                 {
