@@ -1,8 +1,8 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using CSync.Extensions;
 using CSync.Lib;
-using CSync.Util;
 using HarmonyLib;
 using System.Runtime.Serialization;
 
@@ -13,18 +13,18 @@ namespace CustomDeathPenalty
     {
         private const string modGUID = "impulse.CustomDeathPenalty";
         private const string modName = "CustomDeathPenalty";
-        private const string modVersion = "1.8.0";
+        private const string modVersion = "1.9.5";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
 
         public static CustomDeathPenaltyMain instance;
-        public new static SyncConfig Config;
+        public new static SyncConfigCDP Config;
         void Awake()
         {
             instance = this;
 
-            Config = new SyncConfig(base.Config);
+            Config = new SyncConfigCDP(base.Config);
 
             harmony.PatchAll(typeof(StartOfRound_Awake_Patch));
             harmony.PatchAll(typeof(CustomDeathPenalty));
@@ -36,13 +36,12 @@ namespace CustomDeathPenalty
             harmony.PatchAll(typeof(ShipleaveCalc));
             harmony.PatchAll(typeof(DynamicScrapSpawn));
             harmony.PatchAll(typeof(DynamicInteriorSize));
-            harmony.PatchAll(typeof(SyncConfig));
 
             mls = BepInEx.Logging.Logger.CreateLogSource(modGUID);
         }
     }
     [DataContract]
-    public class SyncConfig : SyncedConfig<SyncConfig>
+    public class SyncConfigCDP : SyncedConfig<SyncConfigCDP>
     {
         [DataMember] public SyncedEntry<float> FineAmount { get; private set; }
         [DataMember] public SyncedEntry<float> InsuranceReduction { get; private set; }
@@ -55,16 +54,14 @@ namespace CustomDeathPenalty
         [DataMember] public SyncedEntry<float> MinDiff { get; private set; }
         [DataMember] public SyncedEntry<float> MaxDiff { get; private set; }
         [DataMember] public SyncedEntry<bool> DynamicSizeBool { get; private set; }
-        [DataMember] public SyncedEntry<int> SizeScrapThreshold { get; private set; }
+        [DataMember] public SyncedEntry<float> SizeScrapThreshold { get; private set; }
         [DataMember] public SyncedEntry<float> SizeOffset { get; private set; }
         [DataMember] public SyncedEntry<float> MinSizeClamp { get; private set; }
         [DataMember] public SyncedEntry<float> MaxSizeClamp { get; private set; }
         [DataMember] public SyncedEntry<bool> PlayerCountBasedPenalty { get; private set; }
         [DataMember] public SyncedEntry<int> DynamicQuotaPercent { get; private set; }
         [DataMember] public SyncedEntry<float> EnemyThresholdWeight { get; private set; }
-        public static float CurrentFineAmount { get; set; }
-        public static float CurrentInsuranceReduction { get; set; }
-        public SyncConfig(ConfigFile cfg) : base("CustomDeathPenalty")
+        public SyncConfigCDP(ConfigFile cfg) : base("CustomDeathPenalty")
         {
             ConfigManager.Register(this);
 
@@ -96,16 +93,13 @@ namespace CustomDeathPenalty
 
             DynamicSizeBool = cfg.BindSyncedEntry("4. Dynamic Interior Size", "Dynamic Interior Size Calculation", false, "Set to true to enable. This setting makes the interior size be based on the scrap value. IE every x worth of scrap increases the interior size.");
 
-            SizeScrapThreshold = cfg.BindSyncedEntry("4. Dynamic Interior Size", "Size Increase Threshold", 50, "Everytime the minimum scrap on a moon exceeds this value, 0.01 will be added to the size multiplier. At 50, the multiplier increases by 1x every 5000 scrap on the moon. Range 1 to \u221E");
+            SizeScrapThreshold = cfg.BindSyncedEntry("4. Dynamic Interior Size", "Size Increase Threshold", 5f, "Everytime the minimum scrap on a moon exceeds this value, 0.01 will be added to the size multiplier. At 5, the multiplier increases by 0.01x every 500 scrap on the moon. Range 0.01 to \u221E");
 
             SizeOffset = cfg.BindSyncedEntry("4. Dynamic Interior Size", "Size Offset", 1f, "This controls the intial multiplier the threshold adds onto. Keep in mind that if it is below or above the clamps, it will be corrected as such until it enters an acceptable range.");
 
             MinSizeClamp = cfg.BindSyncedEntry("4. Dynamic Interior Size", "Min Size Clamp", 1f, "If the calculated value of the interior is below this, it will correct to this value. I cannot verify how low this can safely get. It varies by interior.");
 
             MaxSizeClamp = cfg.BindSyncedEntry("4. Dynamic Interior Size", "Max Size Clamp", 3f, "If the calculated value of the interior is above this, it will correct to this value. I cannot verify how high this can safely get. It varies by interior.");
-
-            CurrentFineAmount = FineAmount.Value;
-            CurrentInsuranceReduction = InsuranceReduction.Value;
 
             AcceptableRanges();
         }
@@ -114,66 +108,66 @@ namespace CustomDeathPenalty
             float fineAmount = FineAmount.Value;
             if (fineAmount < 0f) fineAmount = 0f;
             if (fineAmount > 100f) fineAmount = 100f;
-            FineAmount.Value = fineAmount;
+            FineAmount.LocalValue = fineAmount;
 
             float insuranceReduction = InsuranceReduction.Value;
             if (insuranceReduction < 0f) insuranceReduction = 0f;
             if (insuranceReduction > 100f) insuranceReduction = 100f;
-            InsuranceReduction.Value = insuranceReduction;
+            InsuranceReduction.LocalValue = insuranceReduction;
 
             float companyFineAmount = CompanyFineAmount.Value;
             if (companyFineAmount < 0f) companyFineAmount = 0f;
             if (companyFineAmount > 100f) companyFineAmount = 100f;
-            CompanyFineAmount.Value = companyFineAmount;
+            CompanyFineAmount.LocalValue = companyFineAmount;
 
             float companyInsuranceReduction = CompanyInsuranceReduction.Value;
             if (companyInsuranceReduction < 0f) companyInsuranceReduction = 0f;
             if (companyInsuranceReduction > 100f) companyInsuranceReduction = 100f;
-            CompanyInsuranceReduction.Value = companyInsuranceReduction;
+            CompanyInsuranceReduction.LocalValue = companyInsuranceReduction;
 
             int quotaIncreasePercent = QuotaIncreasePercent.Value;
             if (quotaIncreasePercent < 0) quotaIncreasePercent = 0;
-            QuotaIncreasePercent.Value = quotaIncreasePercent;
+            QuotaIncreasePercent.LocalValue = quotaIncreasePercent;
 
             int scrapValueOffset = ScrapValueOffset.Value;
             if (scrapValueOffset < 0) scrapValueOffset = 0;
-            ScrapValueOffset.Value = scrapValueOffset;
+            ScrapValueOffset.LocalValue = scrapValueOffset;
 
             int enemyThreshold = EnemyThreshold.Value;
             if (enemyThreshold < 1) enemyThreshold = 1;
-            EnemyThreshold.Value = enemyThreshold;
+            EnemyThreshold.LocalValue = enemyThreshold;
 
             float minDiff = MinDiff.Value;
             if (minDiff < 1) minDiff = 1;
-            MinDiff.Value = minDiff;
+            MinDiff.LocalValue = minDiff;
 
             float maxDiff = MaxDiff.Value;
             if (maxDiff < 1) maxDiff = 1;
-            MaxDiff.Value = maxDiff;
+            MaxDiff.LocalValue = maxDiff;
 
-            int sizeScrapThreshold = SizeScrapThreshold.Value;
-            if (sizeScrapThreshold < 1) sizeScrapThreshold = 1;
-            SizeScrapThreshold.Value = sizeScrapThreshold;
+            float sizeScrapThreshold = SizeScrapThreshold.Value;
+            if (sizeScrapThreshold < 0.01f) sizeScrapThreshold = 0.01f;
+            SizeScrapThreshold.LocalValue = sizeScrapThreshold;
 
             float sizeOffset = SizeOffset.Value;
             if (sizeOffset < 0) sizeOffset = 0;
-            SizeOffset.Value = sizeOffset;
+            SizeOffset.LocalValue = sizeOffset;
 
             float minSizeClamp = MinSizeClamp.Value;
             if (minSizeClamp < 0) minSizeClamp = 0;
-            MinSizeClamp.Value = minSizeClamp;
+            MinSizeClamp.LocalValue = minSizeClamp;
 
             float maxSizeClamp = MaxSizeClamp.Value;
             if (maxSizeClamp < 0) maxSizeClamp = 0;
-            MaxSizeClamp.Value = maxSizeClamp;
+            MaxSizeClamp.LocalValue = maxSizeClamp;
 
             int dynamicQuotaPercent = DynamicQuotaPercent.Value;
             if (dynamicQuotaPercent < 0)  dynamicQuotaPercent = 0;
-            DynamicQuotaPercent.Value = dynamicQuotaPercent;
+            DynamicQuotaPercent.LocalValue = dynamicQuotaPercent;
 
             float enemyThresholdWeight = EnemyThresholdWeight.Value;
             if (enemyThresholdWeight < 0) enemyThresholdWeight = 0;
-            EnemyThresholdWeight.Value = enemyThresholdWeight;
+            EnemyThresholdWeight.LocalValue = enemyThresholdWeight;
         }
     }
 }
