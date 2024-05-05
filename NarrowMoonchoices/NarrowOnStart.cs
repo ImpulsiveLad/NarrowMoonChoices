@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
 namespace NarrowMoonChoices
 {
     [HarmonyPatch(typeof(StartMatchLever), "Start")]
@@ -12,6 +11,8 @@ namespace NarrowMoonChoices
     {
         static void Postfix()
         {
+            int StartSeed = GetLobby.GrabbedLobby;
+
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !level.ToString().Contains("Gordion") && !level.ToString().Contains("Liquidation") && !level.ContentTags.Any(tag => tag.contentTagName == "Company")).ToList();
 
             foreach (ExtendedLevel level in allLevels)
@@ -26,7 +27,7 @@ namespace NarrowMoonChoices
 
             if (freeLevels.Count > 0 && allLevels.Count >= 2)
             {
-                var random = new System.Random(StartOfRound.Instance.randomMapSeed);
+                var random = new System.Random(StartSeed);
                 int randomFreeIndex = random.Next(freeLevels.Count);
                 randomFreeLevel = freeLevels[randomFreeIndex];
                 randomFreeLevel.IsRouteHidden = false;

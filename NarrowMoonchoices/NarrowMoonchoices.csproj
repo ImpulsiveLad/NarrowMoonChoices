@@ -45,6 +45,10 @@
     <Reference Include="BepInEx.AssemblyPublicizer">
       <HintPath>..\..\Arachnophilia\Arachnophilia\bin\Debug\BepInEx.AssemblyPublicizer.dll</HintPath>
     </Reference>
+    <Reference Include="Facepunch.Steamworks.Win64, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Arachnophilia\Arachnophilia\bin\Debug\Facepunch.Steamworks.Win64.dll</HintPath>
+    </Reference>
     <Reference Include="LethalLevelLoader">
       <HintPath>..\..\..\..\Downloads\LethalLevelLoader.dll</HintPath>
     </Reference>
@@ -72,6 +76,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GetLobby.cs" />
     <Compile Include="NarrowOnDayChange.cs" />
     <Compile Include="NarrowOnGameOver.cs" />
     <Compile Include="NarrowOnStart.cs" />
