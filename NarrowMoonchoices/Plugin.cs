@@ -17,15 +17,20 @@ namespace NarrowMoonChoices
 
         public static NarrowMoonChoices instance;
 
+        public static int LastUsedSeed;
         //public new static SyncConfig Config;
         void Awake()
         {
             instance = this;
 
             //    Config = new SyncConfig(base.Config);
-            harmony.PatchAll(typeof(HideMoonsOnDayChange));
+
+            harmony.PatchAll(typeof(GetLobby));
+            harmony.PatchAll(typeof(ResetShipPatch));
             harmony.PatchAll(typeof(HideMoonsOnStart));
             harmony.PatchAll(typeof(HideMoonsOnGameOver));
+            //harmony.PatchAll(typeof(HideMoonsOnDayChange));
+            harmony.PatchAll(typeof(HideMoonsOnNewQuota));
 
             mls = BepInEx.Logging.Logger.CreateLogSource(modGUID);
         }

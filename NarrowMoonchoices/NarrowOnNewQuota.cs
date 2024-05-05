@@ -4,23 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+
 namespace NarrowMoonChoices
 {
-    [HarmonyPatch(typeof(StartMatchLever), "Start")]
-    public class HideMoonsOnStart
+    [HarmonyPatch(typeof(HUDManager), "rackUpNewQuotaText")]
+    public class HideMoonsOnNewQuota
     {
-        public static int StartSeed;
         static void Postfix()
         {
-            if (StartSeed == 0)
-            {
-                StartSeed = GetLobby.GrabbedLobby; // directly uses LobbyID (called only when a lobby is first made)
-            }
-            else
-            {
-                StartSeed = NarrowMoonChoices.LastUsedSeed;
-            }
-            NarrowMoonChoices.LastUsedSeed = StartSeed;
+            int NewQuotaSeed = TimeOfDay.Instance.profitQuota + GetLobby.GrabbedLobby;
+
+            NarrowMoonChoices.LastUsedSeed = NewQuotaSeed;
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !level.ToString().Contains("Gordion") && !level.ToString().Contains("Liquidation") && !level.ContentTags.Any(tag => tag.contentTagName == "Company")).ToList();
 
@@ -36,7 +30,7 @@ namespace NarrowMoonChoices
 
             if (freeLevels.Count > 0 && allLevels.Count >= 2)
             {
-                var random = new System.Random(StartSeed); // Used Here
+                var random = new System.Random(NewQuotaSeed); // Is the LobbyId + the new Profit Quota
                 int randomFreeIndex = random.Next(freeLevels.Count);
                 randomFreeLevel = freeLevels[randomFreeIndex];
                 randomFreeLevel.IsRouteHidden = false;
