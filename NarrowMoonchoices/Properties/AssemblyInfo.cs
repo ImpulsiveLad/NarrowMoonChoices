@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("CustomDeathPenalty")]
+[assembly: AssemblyTitle("NarrowMoonchoices")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("CustomDeathPenalty")]
+[assembly: AssemblyProduct("NarrowMoonchoices")]
 [assembly: AssemblyCopyright("Copyright ©  2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("5bb0c4cb-6367-4acd-a5f1-d488ab3dd9b3")]
+[assembly: Guid("9da3b81a-c716-44d3-93a9-c5809002fd72")]
 
 // Version information for an assembly consists of the following four values:
 //
