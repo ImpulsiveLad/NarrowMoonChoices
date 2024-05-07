@@ -6,19 +6,19 @@ using CSync.Extensions;
 using CSync.Lib;
 using System.Runtime.Serialization;
 
-namespace NarrowMoonChoices
+namespace Selenes_Choice
 {
     [BepInPlugin(modGUID, modName, modVersion)]
-    public class NarrowMoonChoices : BaseUnityPlugin
+    public class Selenes_Choice : BaseUnityPlugin
     {
-        private const string modGUID = "impulse.NarrowMoonChoices";
-        private const string modName = "NarrowMoonChoices";
+        private const string modGUID = "impulse.Selene's Choice";
+        private const string modName = "Selene's Choice";
         private const string modVersion = "1.0.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
 
-        public static NarrowMoonChoices instance;
+        public static Selenes_Choice instance;
 
         public static int LastUsedSeed;
 
@@ -53,6 +53,7 @@ namespace NarrowMoonChoices
     {
         [DataMember] public SyncedEntry<int> RandomMoonCount { get; private set; }
         [DataMember] public SyncedEntry<bool> DailyOrQuota { get; private set; }
+        [DataMember] public SyncedEntry<string> IgnoreMoons { get; private set; }
         public SyncConfig(ConfigFile cfg) : base("Arachnophilia")
         {
             ConfigManager.Register(this);
@@ -66,6 +67,11 @@ namespace NarrowMoonChoices
                 "New Moons Only on New Quota",
                 false,
                 "If set to true, the moons will only reshuffle after a new quota is assigned instead of reshuffling daily.");
+
+            IgnoreMoons = cfg.BindSyncedEntry("General",
+                "Ignore Moons",
+                "The Company,Liquidation",
+                "Any moons listed here will not be touched by this mod, they cannot be part of the random moon shuffle.");
         }
     }
 }

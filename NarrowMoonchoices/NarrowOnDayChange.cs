@@ -4,14 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace NarrowMoonChoices
+namespace Selenes_Choice
 {
     [HarmonyPatch(typeof(StartOfRound), "PassTimeToNextDay")]
     public class HideMoonsOnDayChange
     {
         static void Postfix()
         {
-            NarrowMoonChoices.LastUsedSeed = StartOfRound.Instance.randomMapSeed;
+            Selenes_Choice.LastUsedSeed = StartOfRound.Instance.randomMapSeed;
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !level.ToString().Contains("Gordion") && !level.ToString().Contains("Liquidation") && !level.ContentTags.Any(tag => tag.contentTagName == "Company")).ToList();
 
@@ -25,9 +25,9 @@ namespace NarrowMoonChoices
 
             ExtendedLevel randomFreeLevel = null;
 
-            if (freeLevels.Count > 0 && allLevels.Count >= (NarrowMoonChoices.Config.RandomMoonCount.Value - 1))
+            if (freeLevels.Count > 0 && allLevels.Count >= (Selenes_Choice.Config.RandomMoonCount.Value - 1))
             {
-                NarrowMoonChoices.instance.mls.LogInfo("New Day Seed " + StartOfRound.Instance.randomMapSeed);
+                Selenes_Choice.instance.mls.LogInfo("New Day Seed " + StartOfRound.Instance.randomMapSeed);
                 Random.State originalState = Random.state;
                 Random.InitState(StartOfRound.Instance.randomMapSeed);
 
@@ -36,9 +36,9 @@ namespace NarrowMoonChoices
                 randomFreeLevel.IsRouteHidden = false;
                 allLevels.Remove(randomFreeLevel);
 
-                NarrowMoonChoices.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
+                Selenes_Choice.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
 
-                for (int i = 0; i < (NarrowMoonChoices.Config.RandomMoonCount.Value - 1); i++)
+                for (int i = 0; i < (Selenes_Choice.Config.RandomMoonCount.Value - 1); i++)
                 {
                     int randomIndex = Random.Range(0, allLevels.Count);
                     ExtendedLevel randomLevel = allLevels[randomIndex];
@@ -49,7 +49,7 @@ namespace NarrowMoonChoices
             }
             else
             {
-                NarrowMoonChoices.instance.mls.LogInfo("Uh oh, the config value for moon count is higher than the actual amount of moons ! ! !");
+                Selenes_Choice.instance.mls.LogInfo("Uh oh, the config value for moon count is higher than the actual amount of moons ! ! !");
             }
             foreach (ExtendedLevel level in allLevels)
             {

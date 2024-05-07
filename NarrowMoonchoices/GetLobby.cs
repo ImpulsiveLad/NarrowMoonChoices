@@ -6,7 +6,7 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Netcode;
 
-namespace NarrowMoonChoices
+namespace Selenes_Choice
 {
     [HarmonyPatch(typeof(Lobby), "get_Id")]
     public static class GetLobby
@@ -21,7 +21,7 @@ namespace NarrowMoonChoices
 
             if (GrabbedLobby != LastLoggedLobby)
             {
-                NarrowMoonChoices.instance.mls.LogInfo("LobbyID: " + GrabbedLobby);
+                Selenes_Choice.instance.mls.LogInfo("LobbyID: " + GrabbedLobby);
                 LastLoggedLobby = GrabbedLobby;
             }
         }
@@ -72,33 +72,33 @@ namespace NarrowMoonChoices
         {
             if (NetworkManager.Singleton.IsHost && clientId != NetworkManager.ServerClientId)
             {
-                lastUsedSeedPrev = NarrowMoonChoices.LastUsedSeed;
+                lastUsedSeedPrev = Selenes_Choice.LastUsedSeed;
                 timesCalledPrev = ResetShipPatch.TimesCalled;
 
                 UpdateAndSendData();
-                NarrowMoonChoices.instance.mls.LogInfo("Host received message");
+                Selenes_Choice.instance.mls.LogInfo("Host received message");
             }
             else if (!NetworkManager.Singleton.IsHost)
             {
                 reader.ReadValue(out int lastUsedSeedPrev);
                 reader.ReadValue(out int timesCalledPrev);
-                NarrowMoonChoices.LastUsedSeed = lastUsedSeedPrev;
+                Selenes_Choice.LastUsedSeed = lastUsedSeedPrev;
                 ResetShipPatch.TimesCalled = timesCalledPrev;
-                NarrowMoonChoices.instance.mls.LogInfo("Client received message");
+                Selenes_Choice.instance.mls.LogInfo("Client received message");
             }
         }
         private void Update()
         {
             if (NetworkManager.Singleton.IsHost)
             {
-                if (NarrowMoonChoices.LastUsedSeed != lastUsedSeedPrev || ResetShipPatch.TimesCalled != timesCalledPrev)
+                if (Selenes_Choice.LastUsedSeed != lastUsedSeedPrev || ResetShipPatch.TimesCalled != timesCalledPrev)
                 {
                     UpdateAndSendData();
 
-                    lastUsedSeedPrev = NarrowMoonChoices.LastUsedSeed;
+                    lastUsedSeedPrev = Selenes_Choice.LastUsedSeed;
                     timesCalledPrev = ResetShipPatch.TimesCalled;
-                    NarrowMoonChoices.instance.mls.LogInfo("Host has saved new seed, " + lastUsedSeedPrev);
-                    NarrowMoonChoices.instance.mls.LogInfo("Host has saved new ejection, " + timesCalledPrev);
+                    Selenes_Choice.instance.mls.LogInfo("Host has saved new seed, " + lastUsedSeedPrev);
+                    Selenes_Choice.instance.mls.LogInfo("Host has saved new ejection, " + timesCalledPrev);
                 }
             }
         }

@@ -7,7 +7,7 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace NarrowMoonChoices
+namespace Selenes_Choice
 {
     [HarmonyPatch(typeof(PlayerControllerB), "ConnectClientToPlayerObject")]
     public class HideMoonsOnStart
@@ -35,17 +35,20 @@ namespace NarrowMoonChoices
         }
         static IEnumerator WaitAndProcessData()
         {
-            yield return new WaitUntil(() => NarrowMoonChoices.LastUsedSeed != 0);
+            yield return new WaitUntil(() => Selenes_Choice.LastUsedSeed != 0);
 
-            StartSeed = NarrowMoonChoices.LastUsedSeed;
+            StartSeed = Selenes_Choice.LastUsedSeed;
 
             ProcessData();
         }
         static void ProcessData()
         {
-            NarrowMoonChoices.LastUsedSeed = StartSeed;
+            Selenes_Choice.LastUsedSeed = StartSeed;
 
-            List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !level.ToString().Contains("Gordion") && !level.ToString().Contains("Liquidation") && !level.ContentTags.Any(tag => tag.contentTagName == "Company")).ToList();
+            string blacklist = Selenes_Choice.Config.IgnoreMoons;
+
+            List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !blacklist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
+
 
             foreach (ExtendedLevel level in allLevels)
             {
@@ -56,9 +59,9 @@ namespace NarrowMoonChoices
 
             ExtendedLevel randomFreeLevel = null;
 
-            if (freeLevels.Count > 0 && allLevels.Count >= (NarrowMoonChoices.Config.RandomMoonCount.Value - 1))
+            if (freeLevels.Count > 0 && allLevels.Count >= (Selenes_Choice.Config.RandomMoonCount.Value - 1))
             {
-                NarrowMoonChoices.instance.mls.LogInfo("Start Seed " + StartSeed);
+                Selenes_Choice.instance.mls.LogInfo("Start Seed " + StartSeed);
                 Random.State originalState = Random.state;
                 Random.InitState(StartSeed);
 
@@ -67,9 +70,9 @@ namespace NarrowMoonChoices
                 randomFreeLevel.IsRouteHidden = false;
                 allLevels.Remove(randomFreeLevel);
 
-                NarrowMoonChoices.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
+                Selenes_Choice.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
 
-                for (int i = 0; i < (NarrowMoonChoices.Config.RandomMoonCount.Value - 1); i++)
+                for (int i = 0; i < (Selenes_Choice.Config.RandomMoonCount.Value - 1); i++)
                 {
                     int randomIndex = Random.Range(0, allLevels.Count);
                     ExtendedLevel randomLevel = allLevels[randomIndex];
@@ -80,7 +83,7 @@ namespace NarrowMoonChoices
             }
             else
             {
-                NarrowMoonChoices.instance.mls.LogInfo("Uh oh, the config value for moon count is higher than the actual amount of moons ! ! !");
+                Selenes_Choice.instance.mls.LogInfo("Uh oh, the config value for moon count is higher than the actual amount of moons ! ! !");
             }
             foreach (ExtendedLevel level in allLevels)
             {
