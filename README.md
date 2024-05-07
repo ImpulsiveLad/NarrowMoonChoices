@@ -1,5 +1,6 @@
-Selene is the Greek Goddess of the moon.
 ![icon](https://github.com/ImpulsiveLad/NarrowMoonChoices/assets/92990441/866d4982-91b9-4e69-a8e9-6e2bb2e66e09)
+
+Selene is the Greek Goddess of the moon.
 
 ## Selene's Choice keeps every run unique while also making the game more difficult
 
