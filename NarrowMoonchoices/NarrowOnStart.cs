@@ -1,25 +1,48 @@
-﻿using HarmonyLib;
+﻿using GameNetcodeStuff;
+using HarmonyLib;
 using LethalLevelLoader;
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
+
 namespace NarrowMoonChoices
 {
-    [HarmonyPatch(typeof(StartMatchLever), "Start")]
+    [HarmonyPatch(typeof(PlayerControllerB), "ConnectClientToPlayerObject")]
     public class HideMoonsOnStart
     {
         public static int StartSeed;
         static void Postfix()
         {
-            if (StartSeed == 0)
+            if (!NetworkManager.Singleton.IsHost)
             {
-                StartSeed = GetLobby.GrabbedLobby; // directly uses LobbyID (called only when a lobby is first made)
+                ShareSnT.Instance.RequestData();
+                ShareSnT.Instance.StartCoroutine(WaitAndProcessData());
             }
             else
             {
-                StartSeed = NarrowMoonChoices.LastUsedSeed;
+                if (StartSeed == 0)
+                {
+                    StartSeed = GetLobby.GrabbedLobby;
+                }
+                else
+                {
+                    StartSeed = ShareSnT.Instance.lastUsedSeedPrev;
+                }
+                ProcessData();
             }
+        }
+        static IEnumerator WaitAndProcessData()
+        {
+            yield return new WaitUntil(() => NarrowMoonChoices.LastUsedSeed != 0);
+
+            StartSeed = NarrowMoonChoices.LastUsedSeed;
+
+            ProcessData();
+        }
+        static void ProcessData()
+        {
             NarrowMoonChoices.LastUsedSeed = StartSeed;
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !level.ToString().Contains("Gordion") && !level.ToString().Contains("Liquidation") && !level.ContentTags.Any(tag => tag.contentTagName == "Company")).ToList();
@@ -29,28 +52,31 @@ namespace NarrowMoonChoices
                 level.IsRouteLocked = false;
                 level.IsRouteHidden = true;
             }
-
             List<ExtendedLevel> freeLevels = allLevels.Where(level => level.RoutePrice == 0).ToList();
 
             ExtendedLevel randomFreeLevel = null;
 
-            if (freeLevels.Count > 0 && allLevels.Count >= 2)
+            if (freeLevels.Count > 0 && allLevels.Count >= (NarrowMoonChoices.Config.RandomMoonCount.Value - 1))
             {
-                var random = new System.Random(StartSeed); // Used Here
-                int randomFreeIndex = random.Next(freeLevels.Count);
+                NarrowMoonChoices.instance.mls.LogInfo("Start Seed " + StartSeed);
+                Random.State originalState = Random.state;
+                Random.InitState(StartSeed);
+
+                int randomFreeIndex = Random.Range(0, freeLevels.Count);
                 randomFreeLevel = freeLevels[randomFreeIndex];
                 randomFreeLevel.IsRouteHidden = false;
                 allLevels.Remove(randomFreeLevel);
 
                 NarrowMoonChoices.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
 
-                for (int i = 0; i < 2; i++)
+                for (int i = 0; i < (NarrowMoonChoices.Config.RandomMoonCount.Value - 1); i++)
                 {
-                    int randomIndex = random.Next(allLevels.Count);
+                    int randomIndex = Random.Range(0, allLevels.Count);
                     ExtendedLevel randomLevel = allLevels[randomIndex];
                     randomLevel.IsRouteHidden = false;
                     allLevels.RemoveAt(randomIndex);
                 }
+                Random.state = originalState;
             }
             else
             {

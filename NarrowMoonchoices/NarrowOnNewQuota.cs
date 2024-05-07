@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using LethalLevelLoader;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -28,23 +27,27 @@ namespace NarrowMoonChoices
 
             ExtendedLevel randomFreeLevel = null;
 
-            if (freeLevels.Count > 0 && allLevels.Count >= 2)
+            if (freeLevels.Count > 0 && allLevels.Count >= (NarrowMoonChoices.Config.RandomMoonCount.Value - 1))
             {
-                var random = new System.Random(NewQuotaSeed); // Is the LobbyId + the new Profit Quota
-                int randomFreeIndex = random.Next(freeLevels.Count);
+                NarrowMoonChoices.instance.mls.LogInfo("New Quota Seed " + NewQuotaSeed);
+                Random.State originalState = Random.state;
+                Random.InitState(NewQuotaSeed);
+
+                int randomFreeIndex = Random.Range(0, freeLevels.Count);
                 randomFreeLevel = freeLevels[randomFreeIndex];
                 randomFreeLevel.IsRouteHidden = false;
                 allLevels.Remove(randomFreeLevel);
 
                 NarrowMoonChoices.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
 
-                for (int i = 0; i < 2; i++)
+                for (int i = 0; i < (NarrowMoonChoices.Config.RandomMoonCount.Value - 1); i++)
                 {
-                    int randomIndex = random.Next(allLevels.Count);
+                    int randomIndex = Random.Range(0, allLevels.Count);
                     ExtendedLevel randomLevel = allLevels[randomIndex];
                     randomLevel.IsRouteHidden = false;
                     allLevels.RemoveAt(randomIndex);
                 }
+                Random.state = originalState;
             }
             else
             {
