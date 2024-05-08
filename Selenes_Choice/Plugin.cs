@@ -69,7 +69,7 @@ namespace Selenes_Choice
                 "How many guaranteed free moons should be generated?");
 
             RandomMoonCount = cfg.BindSyncedEntry("General",
-                "Any Moon Count",
+                "Extra Moon Count",
                 2,
                 "How many moons should be generated on top of the free moons? (These can be free or paid)");
 
