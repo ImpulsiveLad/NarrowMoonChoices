@@ -118,6 +118,10 @@ namespace Selenes_Choice
             {
                 __instance.gameObject.AddComponent<UpdateConfig>();
             }
+            if (__instance.gameObject.GetComponent<ListProcessor>() == null)
+            {
+                __instance.gameObject.AddComponent<ListProcessor>();
+            }
         }
     }
     public class UpdateConfig : NetworkBehaviour
@@ -126,12 +130,14 @@ namespace Selenes_Choice
         public static int randomMoonCount = Selenes_Choice.Config.RandomMoonCount;
         public static void BracketMoons() // I call this everytime I need to use the config values, I essentially made discount variables that are reset constantly by this
         {
-            string exclusionlist = Selenes_Choice.Config.IgnoreMoons;
+            string ignoreList = Selenes_Choice.Config.IgnoreMoons;
+            string blacklist = Selenes_Choice.Config.BlacklistMoons;
+            string exclusionlist = string.Join(",", ignoreList, blacklist);
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
-            Selenes_Choice.instance.mls.LogInfo("allLevels" +  allLevels.Count);
+            Selenes_Choice.instance.mls.LogInfo("allLevels " + allLevels.Count);
             List<ExtendedLevel> freeLevels = allLevels.Where(level => level.RoutePrice == 0).ToList();
-            Selenes_Choice.instance.mls.LogInfo("freeLevels" + freeLevels.Count);
+            Selenes_Choice.instance.mls.LogInfo("freeLevels " + freeLevels.Count);
 
             int oldFreeMoonCount = freeMoonCount;
             int oldRandomMoonCount = randomMoonCount;
@@ -160,6 +166,39 @@ namespace Selenes_Choice
             if (oldRandomMoonCount != randomMoonCount)
             {
                 Selenes_Choice.instance.mls.LogInfo("randomMoonCount changed from " + oldRandomMoonCount + " to " + randomMoonCount);
+            }
+        }
+    }
+    public class ListProcessor : NetworkBehaviour
+    {
+        public static void ProcessLists()
+        {
+            string IgnoreList = Selenes_Choice.Config.IgnoreMoons;
+
+            List<ExtendedLevel> IgnoreThese = PatchedContent.ExtendedLevels.Where(level => IgnoreList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
+
+            foreach (ExtendedLevel level in IgnoreThese)
+            {
+                if (level.NumberlessPlanetName.Equals("Gordion"))
+                {
+                    level.IsRouteLocked = false;
+                    level.IsRouteHidden = true;
+                }
+                else
+                {
+                level.IsRouteLocked = false;
+                level.IsRouteHidden = false;
+                }
+            }
+
+            string BlackList = Selenes_Choice.Config.BlacklistMoons;
+
+            List<ExtendedLevel> BlacklistThese = PatchedContent.ExtendedLevels.Where(level => BlackList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
+
+            foreach (ExtendedLevel level in BlacklistThese)
+            {
+                level.IsRouteLocked = true;
+                level.IsRouteHidden = true;
             }
         }
     }

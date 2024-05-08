@@ -11,11 +11,14 @@ namespace Selenes_Choice
     {
         static void Postfix()
         {
+            ListProcessor.ProcessLists();
             int NewQuotaSeed = TimeOfDay.Instance.profitQuota + GetLobby.GrabbedLobby; // The random moons after getting a new quota will be the new quota and the lobbyID
 
             Selenes_Choice.LastUsedSeed = NewQuotaSeed;
 
-            string exclusionlist = Selenes_Choice.Config.IgnoreMoons;
+            string ignoreList = Selenes_Choice.Config.IgnoreMoons;
+            string blacklist = Selenes_Choice.Config.BlacklistMoons;
+            string exclusionlist = string.Join(",", ignoreList, blacklist);
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
 
@@ -67,13 +70,27 @@ namespace Selenes_Choice
                     level.IsRouteLocked = true;
                 }
             }
-            if (randomFreeLevel != null && randomFreeLevel != LevelManager.CurrentExtendedLevel)
-            {
-                int randomFreeLevelId = randomFreeLevel.SelectableLevel.levelID;
 
-                StartOfRound.Instance.ChangeLevel(randomFreeLevelId);
+            if (TimeOfDay.Instance.daysUntilDeadline == 0)
+            {
+                ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
+
+                int CompanyID = gordionLevel.SelectableLevel.levelID;
+
+                StartOfRound.Instance.ChangeLevel(CompanyID);
 
                 StartOfRound.Instance.ChangePlanet();
+            }
+            else
+            {
+                if (randomFreeLevel != null && randomFreeLevel != LevelManager.CurrentExtendedLevel)
+                {
+                    int randomFreeLevelId = randomFreeLevel.SelectableLevel.levelID;
+
+                    StartOfRound.Instance.ChangeLevel(randomFreeLevelId);
+
+                    StartOfRound.Instance.ChangePlanet();
+                }
             }
         }
     }

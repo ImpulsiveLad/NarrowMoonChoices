@@ -80,7 +80,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GetLobby.cs" />
+    <Compile Include="MiscFunctions.cs" />
     <Compile Include="NarrowOnDayChange.cs" />
     <Compile Include="NarrowOnGameOver.cs" />
     <Compile Include="NarrowOnNewQuota.cs" />

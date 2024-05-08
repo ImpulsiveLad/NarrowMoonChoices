@@ -34,6 +34,7 @@ namespace Selenes_Choice
             harmony.PatchAll(typeof(ResetShipPatch));
             harmony.PatchAll(typeof(ShareSnT));
             harmony.PatchAll(typeof(AnchorTheShare));
+            harmony.PatchAll(typeof(ListProcessor));
             harmony.PatchAll(typeof(UpdateConfig));
             harmony.PatchAll(typeof(HideMoonsOnStart));
             harmony.PatchAll(typeof(HideMoonsOnGameOver));
@@ -57,6 +58,7 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<int> RandomMoonCount { get; private set; }
         [DataMember] public SyncedEntry<bool> DailyOrQuota { get; private set; }
         [DataMember] public SyncedEntry<string> IgnoreMoons { get; private set; }
+        [DataMember] public SyncedEntry<string> BlacklistMoons { get; private set; }
         public SyncConfig(ConfigFile cfg) : base("Selenes_Choice")
         {
             ConfigManager.Register(this);
@@ -76,10 +78,15 @@ namespace Selenes_Choice
                 false,
                 "If set to true, the moons will only reshuffle after a new quota is assigned instead of reshuffling daily.");
 
-            IgnoreMoons = cfg.BindSyncedEntry("General",
+            IgnoreMoons = cfg.BindSyncedEntry("Lists",
                 "Ignore Moons",
-                "Gordion,Liquidation",
-                "Any moons listed here will not be touched by this mod, they cannot be part of the random moon shuffle.");
+                "Gordion",
+                "Any moons listed here will not be touched by this mod, they cannot be part of the random moon shuffle. Use this to have moons that are constant, they will always be unhidden and unlocked. Moon names must be spelled correctly and exact, IE Experimentation,Assurance,Vow - Experimentatio would not be counted. (This is to avoid moon name mix-ups)");
+
+            BlacklistMoons = cfg.BindSyncedEntry("Lists",
+                "Blacklist Moons",
+                "Liquidation",
+                "Any moons listed here will be indefinitely hidden and locked, any moons here will also be excluded from the shuffle. Moon names must be spelled correctly and exact, IE Experimentation,Assurance,Vow - Experimentatio would not be counted. (This is to avoid moon name mix-ups)");
         }
     }
 }
