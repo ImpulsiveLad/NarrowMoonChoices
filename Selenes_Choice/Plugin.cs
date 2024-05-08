@@ -66,27 +66,27 @@ namespace Selenes_Choice
             FreeMoonCount = cfg.BindSyncedEntry("General",
                 "Free Moon Count",
                 1,
-                "How many guaranteed free moons should be generated?");
+                "How many guaranteed free moons should be included?");
 
             RandomMoonCount = cfg.BindSyncedEntry("General",
                 "Extra Moon Count",
                 2,
-                "How many moons should be generated on top of the free moons? (These can be free or paid)");
+                "How many moons should be included on top of the free moons? (These can be free or paid)");
 
             DailyOrQuota = cfg.BindSyncedEntry("General",
                 "New Moons Only on New Quota",
                 false,
-                "If set to true, the moons will only reshuffle after a new quota is assigned instead of reshuffling daily.");
+                "If set to true, the moons will reshuffle only after a new quota is assigned, not daily.");
 
             IgnoreMoons = cfg.BindSyncedEntry("Lists",
                 "Ignore Moons",
                 "Gordion",
-                "Any moons listed here will not be touched by this mod, they cannot be part of the random moon shuffle. Use this to have moons that are constant, they will always be unhidden and unlocked. Moon names must be spelled correctly and exact, IE Experimentation,Assurance,Vow - Experimentatio would not be counted. (This is to avoid moon name mix-ups)");
+                "Any moons listed here will not be touched by this mod, they cannot be part of the random moon shuffle. Use this to have moons that are constant, they will always be unhidden and unlocked. Moon names must be spelled exactly and correctly. For example, ‘Experimentation,Assurance,Vow’ would be counted, but ‘Experimentatio’ would not. (This is to avoid moon name mix-ups)");
 
             BlacklistMoons = cfg.BindSyncedEntry("Lists",
                 "Blacklist Moons",
                 "Liquidation",
-                "Any moons listed here will be indefinitely hidden and locked, any moons here will also be excluded from the shuffle. Moon names must be spelled correctly and exact, IE Experimentation,Assurance,Vow - Experimentatio would not be counted. (This is to avoid moon name mix-ups)");
+                "Any moons listed here will be indefinitely hidden and locked, any moons here will also be excluded from the shuffle. Moon names must be spelled exactly and correctly. For example, ‘Experimentation,Assurance,Vow’ would be counted, but ‘Experimentatio’ would not. (This is to avoid moon name mix-ups)");
         }
     }
 }
