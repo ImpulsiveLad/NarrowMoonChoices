@@ -11,9 +11,9 @@ namespace Selenes_Choice
     [BepInPlugin(modGUID, modName, modVersion)]
     public class Selenes_Choice : BaseUnityPlugin
     {
-        private const string modGUID = "impulse.Selene's Choice";
-        private const string modName = "Selene's Choice";
-        private const string modVersion = "1.0.0";
+        private const string modGUID = "impulse.Selenes_Choice";
+        private const string modName = "SelenesChoice";
+        private const string modVersion = "1.1.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -23,6 +23,7 @@ namespace Selenes_Choice
         public static int LastUsedSeed;
 
         public new static SyncConfig Config;
+
         void Awake()
         {
             instance = this;
@@ -33,6 +34,7 @@ namespace Selenes_Choice
             harmony.PatchAll(typeof(ResetShipPatch));
             harmony.PatchAll(typeof(ShareSnT));
             harmony.PatchAll(typeof(AnchorTheShare));
+            harmony.PatchAll(typeof(UpdateConfig));
             harmony.PatchAll(typeof(HideMoonsOnStart));
             harmony.PatchAll(typeof(HideMoonsOnGameOver));
 
@@ -51,17 +53,23 @@ namespace Selenes_Choice
     [DataContract]
     public class SyncConfig : SyncedConfig2<SyncConfig>
     {
+        [DataMember] public SyncedEntry<int> FreeMoonCount { get; private set; }
         [DataMember] public SyncedEntry<int> RandomMoonCount { get; private set; }
         [DataMember] public SyncedEntry<bool> DailyOrQuota { get; private set; }
         [DataMember] public SyncedEntry<string> IgnoreMoons { get; private set; }
-        public SyncConfig(ConfigFile cfg) : base("Arachnophilia")
+        public SyncConfig(ConfigFile cfg) : base("Selenes_Choice")
         {
             ConfigManager.Register(this);
 
+            FreeMoonCount = cfg.BindSyncedEntry("General",
+                "Free Moon Count",
+                1,
+                "How many guaranteed free moons should be generated?");
+
             RandomMoonCount = cfg.BindSyncedEntry("General",
-                "Random Moon Count",
-                3,
-                "How many random moons should be available at any given time?");
+                "Any Moon Count",
+                2,
+                "How many moons should be generated on top of the free moons? (These can be free or paid)");
 
             DailyOrQuota = cfg.BindSyncedEntry("General",
                 "New Moons Only on New Quota",
@@ -70,8 +78,9 @@ namespace Selenes_Choice
 
             IgnoreMoons = cfg.BindSyncedEntry("General",
                 "Ignore Moons",
-                "The Company,Liquidation",
+                "Gordion,Liquidation",
                 "Any moons listed here will not be touched by this mod, they cannot be part of the random moon shuffle.");
         }
     }
 }
+

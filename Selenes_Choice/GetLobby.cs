@@ -1,10 +1,12 @@
 ﻿using HarmonyLib;
 using Steamworks;
 using Steamworks.Data;
-using System;
+using System.Linq;
 using UnityEngine;
 using Unity.Collections;
 using Unity.Netcode;
+using LethalLevelLoader;
+using System.Collections.Generic;
 
 namespace Selenes_Choice
 {
@@ -35,7 +37,7 @@ namespace Selenes_Choice
             TimesCalled++; // Counts times the ship is reset (basically game overs)
         }
     }
-    public class ShareSnT : NetworkBehaviour
+    public class ShareSnT : NetworkBehaviour // this is all just to transmit 2 variables to late players
     {
         public static ShareSnT Instance { get; private set; }
 
@@ -104,13 +106,60 @@ namespace Selenes_Choice
         }
     }
     [HarmonyPatch(typeof(HangarShipDoor), "Start")]
-    public static class AnchorTheShare
+    public static class AnchorTheShare // This just exist to ..... put scripts on the ship door for safekeeping lol
     {
         static void Postfix(HangarShipDoor __instance)
         {
             if (__instance.gameObject.GetComponent<ShareSnT>() == null)
             {
                 __instance.gameObject.AddComponent<ShareSnT>();
+            }
+            if (__instance.gameObject.GetComponent<UpdateConfig>() == null)
+            {
+                __instance.gameObject.AddComponent<UpdateConfig>();
+            }
+        }
+    }
+    public class UpdateConfig : NetworkBehaviour
+    {
+        public static int freeMoonCount = Selenes_Choice.Config.FreeMoonCount;
+        public static int randomMoonCount = Selenes_Choice.Config.RandomMoonCount;
+        public static void BracketMoons() // I call this everytime I need to use the config values, I essentially made discount variables that are reset constantly by this
+        {
+            string exclusionlist = Selenes_Choice.Config.IgnoreMoons;
+
+            List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
+            Selenes_Choice.instance.mls.LogInfo("allLevels" +  allLevels.Count);
+            List<ExtendedLevel> freeLevels = allLevels.Where(level => level.RoutePrice == 0).ToList();
+            Selenes_Choice.instance.mls.LogInfo("freeLevels" + freeLevels.Count);
+
+            int oldFreeMoonCount = freeMoonCount;
+            int oldRandomMoonCount = randomMoonCount;
+
+            if (freeMoonCount < 1)
+            {
+                freeMoonCount = 1;
+            }
+            if (freeMoonCount > freeLevels.Count)
+            {
+                freeMoonCount = freeLevels.Count;
+            }
+            if (randomMoonCount < 0)
+            {
+                randomMoonCount = 0;
+            }
+            if (randomMoonCount > allLevels.Count - freeMoonCount)
+            {
+                randomMoonCount = allLevels.Count - freeMoonCount;
+            }
+
+            if (oldFreeMoonCount != freeMoonCount)
+            {
+                Selenes_Choice.instance.mls.LogInfo("freeMoonCount changed from " + oldFreeMoonCount + " to " + freeMoonCount);
+            }
+            if (oldRandomMoonCount != randomMoonCount)
+            {
+                Selenes_Choice.instance.mls.LogInfo("randomMoonCount changed from " + oldRandomMoonCount + " to " + randomMoonCount);
             }
         }
     }
