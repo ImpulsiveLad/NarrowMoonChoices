@@ -18,7 +18,8 @@ namespace Selenes_Choice
 
             string ignoreList = Selenes_Choice.Config.IgnoreMoons;
             string blacklist = Selenes_Choice.Config.BlacklistMoons;
-            string exclusionlist = string.Join(",", ignoreList, blacklist);
+            string treasurelist = Selenes_Choice.Config.TreasureMoons;
+            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist);
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
 

@@ -36,7 +36,7 @@ namespace Selenes_Choice
         }
         static IEnumerator WaitAndProcessData() // just in case data takes a few frames
         {
-            yield return new WaitUntil(() => Selenes_Choice.LastUsedSeed != 0);
+            yield return new WaitUntil(() => ShareSnT.Instance.dataReceivedEvent.WaitOne(0));
 
             StartSeed = Selenes_Choice.LastUsedSeed;
 
@@ -48,7 +48,8 @@ namespace Selenes_Choice
 
             string ignoreList = Selenes_Choice.Config.IgnoreMoons;
             string blacklist = Selenes_Choice.Config.BlacklistMoons;
-            string exclusionlist = string.Join(",", ignoreList, blacklist);
+            string treasurelist = Selenes_Choice.Config.TreasureMoons;
+            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist);
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
 

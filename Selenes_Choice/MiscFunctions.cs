@@ -7,6 +7,7 @@ using Unity.Collections;
 using Unity.Netcode;
 using LethalLevelLoader;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Selenes_Choice
 {
@@ -43,6 +44,7 @@ namespace Selenes_Choice
 
         public int lastUsedSeedPrev;
         public int timesCalledPrev;
+        public ManualResetEvent dataReceivedEvent = new ManualResetEvent(false);
 
         private void Awake()
         {
@@ -76,6 +78,7 @@ namespace Selenes_Choice
             {
                 lastUsedSeedPrev = Selenes_Choice.LastUsedSeed;
                 timesCalledPrev = ResetShipPatch.TimesCalled;
+                dataReceivedEvent.Set();
 
                 UpdateAndSendData();
                 Selenes_Choice.instance.mls.LogInfo("Host received message");
@@ -86,6 +89,7 @@ namespace Selenes_Choice
                 reader.ReadValue(out int timesCalledPrev);
                 Selenes_Choice.LastUsedSeed = lastUsedSeedPrev;
                 ResetShipPatch.TimesCalled = timesCalledPrev;
+                dataReceivedEvent.Set();
                 Selenes_Choice.instance.mls.LogInfo("Client received message");
             }
         }
@@ -132,7 +136,8 @@ namespace Selenes_Choice
         {
             string ignoreList = Selenes_Choice.Config.IgnoreMoons;
             string blacklist = Selenes_Choice.Config.BlacklistMoons;
-            string exclusionlist = string.Join(",", ignoreList, blacklist);
+            string treasurelist = Selenes_Choice.Config.TreasureMoons;
+            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist);
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
             Selenes_Choice.instance.mls.LogInfo("allLevels " + allLevels.Count);
@@ -186,8 +191,8 @@ namespace Selenes_Choice
                 }
                 else
                 {
-                level.IsRouteLocked = false;
-                level.IsRouteHidden = false;
+                    level.IsRouteLocked = false;
+                    level.IsRouteHidden = false;
                 }
             }
 
@@ -199,6 +204,23 @@ namespace Selenes_Choice
             {
                 level.IsRouteLocked = true;
                 level.IsRouteHidden = true;
+            }
+
+            string TreasureList = Selenes_Choice.Config.TreasureMoons;
+
+            List<ExtendedLevel> TreasureThese = PatchedContent.ExtendedLevels.Where(level => TreasureList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
+
+            foreach (ExtendedLevel level in TreasureThese)
+            {
+                level.IsRouteLocked = false;
+                level.IsRouteHidden = true;
+                if (Selenes_Choice.Config.TreasureBool == true)
+                {
+                    level.SelectableLevel.minTotalScrapValue = (int)(level.SelectableLevel.minTotalScrapValue * Selenes_Choice.Config.TreasureBonus);
+                    level.SelectableLevel.maxTotalScrapValue = (int)(level.SelectableLevel.maxTotalScrapValue * Selenes_Choice.Config.TreasureBonus);
+                    level.SelectableLevel.minScrap = (int)(level.SelectableLevel.minScrap * Selenes_Choice.Config.TreasureBonus);
+                    level.SelectableLevel.maxScrap = (int)(level.SelectableLevel.maxScrap * Selenes_Choice.Config.TreasureBonus);
+                }
             }
         }
     }

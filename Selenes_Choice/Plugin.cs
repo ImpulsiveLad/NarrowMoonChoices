@@ -13,7 +13,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "1.1.0";
+        private const string modVersion = "1.2.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -59,6 +59,9 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<bool> DailyOrQuota { get; private set; }
         [DataMember] public SyncedEntry<string> IgnoreMoons { get; private set; }
         [DataMember] public SyncedEntry<string> BlacklistMoons { get; private set; }
+        [DataMember] public SyncedEntry<string> TreasureMoons { get; private set; }
+        [DataMember] public SyncedEntry<bool> TreasureBool { get; private set; }
+        [DataMember] public SyncedEntry<float> TreasureBonus { get; private set; }
         public SyncConfig(ConfigFile cfg) : base("Selenes_Choice")
         {
             ConfigManager.Register(this);
@@ -87,6 +90,21 @@ namespace Selenes_Choice
                 "Blacklist Moons",
                 "Liquidation",
                 "Any moons listed here will be indefinitely hidden and locked, any moons here will also be excluded from the shuffle. Moon names must be spelled exactly and correctly. For example, ‘Experimentation,Assurance,Vow’ would be counted, but ‘Experimentatio’ would not. (This is to avoid moon name mix-ups)");
+           
+            TreasureMoons = cfg.BindSyncedEntry("Lists",
+                "Treasure(?) Moons",
+                "StarlancerZero,Penumbra,Cosmocos",
+                "Any moons that are listed here will remain hidden but be routable (if you know the routing key *winky face*) Just as the other two lists, these are not in the shuffle. The config section below allows you to make them be 'Treasure Moons.' Moon names must be spelled exactly and correctly. For example, ‘Experimentation,Assurance,Vow’ would be counted, but ‘Experimentatio’ would not. (This is to avoid moon name mix-ups)");
+
+            TreasureBool = cfg.BindSyncedEntry("Treasure",
+                "Bonus For Secret Moons?",
+                false,
+                "If set to true, moons from the Treasure Moons list will have a bonus value applied.");
+
+            TreasureBonus = cfg.BindSyncedEntry("Treasure",
+                "Treasure Bonus",
+                1.25f,
+                "This multiplier is applied to the scrap value and count on treasure moons if the setting above is true.");
         }
     }
 }
