@@ -29,7 +29,7 @@ namespace Selenes_Choice
                 }
                 else
                 {
-                    StartSeed = ShareSnT.Instance.lastUsedSeedPrev; // This is for if the host leaves and rejoins
+                    StartSeed = Selenes_Choice.LastUsedSeed; // This is for if the host leaves and rejoins
                 }
                 ProcessData();
             }

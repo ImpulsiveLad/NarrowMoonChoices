@@ -147,6 +147,11 @@ namespace Selenes_Choice
             List<ExtendedLevel> paidLevels = allLevels.Where(level => level.RoutePrice != 0).ToList();
             Selenes_Choice.instance.mls.LogInfo("paid levels " +  paidLevels.Count);
 
+            if (paidLevels.Count == 0 && Selenes_Choice.Config.PaidMoonRollover)
+            {
+                randomMoonCount = Selenes_Choice.Config.RandomMoonCount + Selenes_Choice.Config.PaidMoonCount;
+            }
+
             int oldFreeMoonCount = freeMoonCount;
             int oldPaidMoonCount = paidMoonCount;
             int oldRandomMoonCount = randomMoonCount;

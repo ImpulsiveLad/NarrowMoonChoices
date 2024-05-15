@@ -13,7 +13,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "1.3.0";
+        private const string modVersion = "1.3.5";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -66,6 +66,7 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<bool> TreasureBool { get; private set; }
         [DataMember] public SyncedEntry<float> TreasureBonus { get; private set; }
         [DataMember] public SyncedEntry<int> PaidMoonCount { get; private set; }
+        [DataMember] public SyncedEntry<bool> PaidMoonRollover { get; private set; }
         public SyncConfig(ConfigFile cfg) : base("Selenes_Choice")
         {
             ConfigManager.Register(this);
@@ -84,6 +85,11 @@ namespace Selenes_Choice
                 "Extra Moon Count",
                 1,
                 "How many additional moons should be added? (These can be free or paid)");
+
+            PaidMoonRollover = cfg.BindSyncedEntry("General",
+                "Rollover Paid Moons",
+                true,
+                "If this is true, when there are no paid moons left, the Paid Moon Count will be added to the Extra Moon Count.");
 
             DailyOrQuota = cfg.BindSyncedEntry("General",
                 "New Moons Only on New Quota",
