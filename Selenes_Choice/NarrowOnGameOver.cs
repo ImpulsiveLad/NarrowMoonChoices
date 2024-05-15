@@ -29,6 +29,7 @@ namespace Selenes_Choice
                 level.IsRouteHidden = true;
             }
             List<ExtendedLevel> freeLevels = allLevels.Where(level => level.RoutePrice == 0).ToList();
+            List<ExtendedLevel> paidLevels = allLevels.Where(level => level.RoutePrice != 0).ToList();
 
             ExtendedLevel randomFreeLevel = null;
 
@@ -53,6 +54,18 @@ namespace Selenes_Choice
                 additionalFreeLevels.IsRouteHidden = false;
                 freeLevels.Remove(additionalFreeLevels);
                 allLevels.Remove(additionalFreeLevels);
+            }
+
+            if (UpdateConfig.paidMoonCount != 0)
+            {
+                for (int i = 0; i < UpdateConfig.paidMoonCount; i++) // gets some paid moons
+                {
+                    int PaidIndex = Random.Range(0, paidLevels.Count);
+                    ExtendedLevel PaidLevel = paidLevels[PaidIndex];
+                    PaidLevel.IsRouteHidden = false;
+                    paidLevels.Remove(PaidLevel);
+                    allLevels.Remove(PaidLevel);
+                }
             }
 
             for (int i = 0; i < UpdateConfig.randomMoonCount; i++) // gets any other additional moons

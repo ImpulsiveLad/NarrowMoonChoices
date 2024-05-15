@@ -131,6 +131,7 @@ namespace Selenes_Choice
     public class UpdateConfig : NetworkBehaviour
     {
         public static int freeMoonCount = Selenes_Choice.Config.FreeMoonCount;
+        public static int paidMoonCount = Selenes_Choice.Config.PaidMoonCount;
         public static int randomMoonCount = Selenes_Choice.Config.RandomMoonCount;
         public static void BracketMoons() // I call this everytime I need to use the config values, I essentially made discount variables that are reset constantly by this
         {
@@ -143,8 +144,11 @@ namespace Selenes_Choice
             Selenes_Choice.instance.mls.LogInfo("allLevels " + allLevels.Count);
             List<ExtendedLevel> freeLevels = allLevels.Where(level => level.RoutePrice == 0).ToList();
             Selenes_Choice.instance.mls.LogInfo("freeLevels " + freeLevels.Count);
+            List<ExtendedLevel> paidLevels = allLevels.Where(level => level.RoutePrice != 0).ToList();
+            Selenes_Choice.instance.mls.LogInfo("paid levels " +  paidLevels.Count);
 
             int oldFreeMoonCount = freeMoonCount;
+            int oldPaidMoonCount = paidMoonCount;
             int oldRandomMoonCount = randomMoonCount;
 
             if (freeMoonCount < 1)
@@ -155,18 +159,30 @@ namespace Selenes_Choice
             {
                 freeMoonCount = freeLevels.Count;
             }
+            if (paidMoonCount < 0)
+            {
+                paidMoonCount = 0;
+            }
+            if (paidMoonCount > paidLevels.Count)
+            {
+                paidMoonCount = paidLevels.Count;
+            }
             if (randomMoonCount < 0)
             {
                 randomMoonCount = 0;
             }
-            if (randomMoonCount > allLevels.Count - freeMoonCount)
+            if (randomMoonCount > (allLevels.Count - freeMoonCount) - paidMoonCount)
             {
-                randomMoonCount = allLevels.Count - freeMoonCount;
+                randomMoonCount = (allLevels.Count - freeMoonCount) - paidMoonCount;
             }
 
             if (oldFreeMoonCount != freeMoonCount)
             {
                 Selenes_Choice.instance.mls.LogInfo("freeMoonCount changed from " + oldFreeMoonCount + " to " + freeMoonCount);
+            }
+            if (oldPaidMoonCount != paidMoonCount)
+            {
+                Selenes_Choice.instance.mls.LogInfo("paidMoonCount changed from " + oldPaidMoonCount + " to " + paidMoonCount);
             }
             if (oldRandomMoonCount != randomMoonCount)
             {
@@ -222,6 +238,42 @@ namespace Selenes_Choice
                     level.SelectableLevel.maxScrap = (int)(level.SelectableLevel.maxScrap * Selenes_Choice.Config.TreasureBonus);
                 }
             }
+        }
+    }
+    public static class GlobalVariables
+    {
+        public static int RemainingScrapInLevel;
+    }
+    [HarmonyPatch(typeof(StartOfRound), "ShipLeave")]
+    public class ShipleaveCalc
+    {
+        [HarmonyPostfix]
+        public static void Postfix()
+        {
+            GlobalVariables.RemainingScrapInLevel = CalculateRemainingScrapInLevel();
+        }
+        public static int CalculateRemainingScrapInLevel()
+        {
+            GrabbableObject[] array = Object.FindObjectsOfType<GrabbableObject>();
+            int remainingValue = 0;
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (array[i].itemProperties.isScrap && !array[i].isInShipRoom && !array[i].isInElevator && !array[i].scrapPersistedThroughRounds)
+                {
+                    remainingValue += array[i].scrapValue;
+                }
+            }
+            return remainingValue;
+        }
+    }
+    [HarmonyPatch(typeof(HUDManager), "FillEndGameStats")]
+    public class HUDManagerPatch
+    {
+        [HarmonyPostfix]
+        public static void FillEndGameStatsPostfix(HUDManager __instance, int scrapCollected)
+        {
+            float finalCount = (int)(scrapCollected + GlobalVariables.RemainingScrapInLevel);
+            __instance.statsUIElements.quotaDenominator.text = finalCount.ToString();
         }
     }
 }

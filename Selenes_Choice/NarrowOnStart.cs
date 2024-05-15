@@ -59,6 +59,7 @@ namespace Selenes_Choice
                 level.IsRouteHidden = true;
             }
             List<ExtendedLevel> freeLevels = allLevels.Where(level => level.RoutePrice == 0).ToList();
+            List<ExtendedLevel> paidLevels = allLevels.Where(level => level.RoutePrice != 0).ToList();
 
             ExtendedLevel randomFreeLevel = null;
 
@@ -71,8 +72,8 @@ namespace Selenes_Choice
             int randomFreeIndex = Random.Range(0, freeLevels.Count); // gets the one holy "safety moon"
             randomFreeLevel = freeLevels[randomFreeIndex];
             randomFreeLevel.IsRouteHidden = false;
-            allLevels.Remove(randomFreeLevel);
             freeLevels.Remove(randomFreeLevel);
+            allLevels.Remove(randomFreeLevel);
 
             Selenes_Choice.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
 
@@ -83,6 +84,18 @@ namespace Selenes_Choice
                 additionalFreeLevels.IsRouteHidden = false;
                 freeLevels.Remove(additionalFreeLevels);
                 allLevels.Remove(additionalFreeLevels);
+            }
+
+            if (UpdateConfig.paidMoonCount != 0)
+            {
+                for (int i = 0; i < UpdateConfig.paidMoonCount; i++) // gets some paid moons
+                {
+                    int PaidIndex = Random.Range(0, paidLevels.Count);
+                    ExtendedLevel PaidLevel = paidLevels[PaidIndex];
+                    PaidLevel.IsRouteHidden = false;
+                    paidLevels.Remove(PaidLevel);
+                    allLevels.Remove(PaidLevel);
+                }
             }
 
             for (int i = 0; i < UpdateConfig.randomMoonCount; i++) // gets any other additional moons

@@ -13,7 +13,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "1.2.0";
+        private const string modVersion = "1.3.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -38,6 +38,9 @@ namespace Selenes_Choice
             harmony.PatchAll(typeof(UpdateConfig));
             harmony.PatchAll(typeof(HideMoonsOnStart));
             harmony.PatchAll(typeof(HideMoonsOnGameOver));
+            harmony.PatchAll(typeof(GlobalVariables));
+            harmony.PatchAll(typeof(ShipleaveCalc));
+            harmony.PatchAll(typeof(HUDManagerPatch));
 
             if (Config.DailyOrQuota == false)
             {
@@ -62,6 +65,7 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<string> TreasureMoons { get; private set; }
         [DataMember] public SyncedEntry<bool> TreasureBool { get; private set; }
         [DataMember] public SyncedEntry<float> TreasureBonus { get; private set; }
+        [DataMember] public SyncedEntry<int> PaidMoonCount { get; private set; }
         public SyncConfig(ConfigFile cfg) : base("Selenes_Choice")
         {
             ConfigManager.Register(this);
@@ -71,10 +75,15 @@ namespace Selenes_Choice
                 1,
                 "How many guaranteed free moons should be included?");
 
+            PaidMoonCount = cfg.BindSyncedEntry("General",
+                "Paid Moon Count",
+                1,
+                "How many guaranteed paid moons should be included?");
+
             RandomMoonCount = cfg.BindSyncedEntry("General",
                 "Extra Moon Count",
-                2,
-                "How many moons should be included on top of the free moons? (These can be free or paid)");
+                1,
+                "How many additional moons should be added? (These can be free or paid)");
 
             DailyOrQuota = cfg.BindSyncedEntry("General",
                 "New Moons Only on New Quota",
