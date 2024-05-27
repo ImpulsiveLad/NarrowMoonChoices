@@ -13,7 +13,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "1.3.5";
+        private const string modVersion = "1.3.6";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -87,7 +87,7 @@ namespace Selenes_Choice
                 "How many additional moons should be added? (These can be free or paid)");
 
             PaidMoonRollover = cfg.BindSyncedEntry("General",
-                "Rollover Paid Moons",
+                "Roll Over Paid Moons",
                 true,
                 "If this is true, when there are no paid moons left, the Paid Moon Count will be added to the Extra Moon Count.");
 

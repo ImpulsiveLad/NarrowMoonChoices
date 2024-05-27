@@ -31,7 +31,7 @@ namespace Selenes_Choice
                 {
                     StartSeed = Selenes_Choice.LastUsedSeed; // This is for if the host leaves and rejoins
                 }
-                ProcessData();
+                ShareSnT.Instance.StartCoroutine(WaitOnTF());
             }
         }
         static IEnumerator WaitAndProcessData() // just in case data takes a few frames
@@ -40,6 +40,11 @@ namespace Selenes_Choice
 
             StartSeed = Selenes_Choice.LastUsedSeed;
 
+            ShareSnT.Instance.StartCoroutine(WaitOnTF());
+        }
+        static IEnumerator WaitOnTF()
+        {
+            yield return new WaitForSeconds(3);
             ProcessData();
         }
         static void ProcessData()
