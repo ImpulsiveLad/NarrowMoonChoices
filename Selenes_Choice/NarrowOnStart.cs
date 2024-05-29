@@ -1,5 +1,4 @@
-﻿using GameNetcodeStuff;
-using HarmonyLib;
+﻿using HarmonyLib;
 using LethalLevelLoader;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,13 +8,13 @@ using UnityEngine;
 
 namespace Selenes_Choice
 {
-    [HarmonyPatch(typeof(PlayerControllerB), "ConnectClientToPlayerObject")]
+    [HarmonyPatch(typeof(HangarShipDoor), "Start")]
     public class HideMoonsOnStart
     {
         public static int StartSeed;
         static void Postfix()
         {
-            ListProcessor.ProcessLists();
+            ListProcessor.Instance.ProcessLists();
             if (!NetworkManager.Singleton.IsHost) // someone that isn't host joins
             {
                 ShareSnT.Instance.RequestData();
@@ -23,13 +22,14 @@ namespace Selenes_Choice
             }
             else // host just made a server
             {
-                if (StartSeed == 0)
+                if (ES3.KeyExists("LastUsedSeed", GameNetworkManager.Instance.currentSaveFileName))
                 {
-                    StartSeed = GetLobby.GrabbedLobby; // first ever moons generated when the host joins are based on the lobbyID
+                    Selenes_Choice.LastUsedSeed = ES3.Load<int>("LastUsedSeed", GameNetworkManager.Instance.currentSaveFileName);
+                    StartSeed = Selenes_Choice.LastUsedSeed;
                 }
                 else
                 {
-                    StartSeed = Selenes_Choice.LastUsedSeed; // This is for if the host leaves and rejoins
+                    StartSeed = GetLobby.GrabbedLobby;
                 }
                 ShareSnT.Instance.StartCoroutine(WaitOnTF());
             }
@@ -44,17 +44,19 @@ namespace Selenes_Choice
         }
         static IEnumerator WaitOnTF()
         {
-            yield return new WaitForSeconds(3);
+            yield return new WaitForSeconds(2);
             ProcessData();
         }
         static void ProcessData()
         {
             Selenes_Choice.LastUsedSeed = StartSeed; // LastUsedSeed is here to remember the moons if the host closes and reopens the lobby, all of the 4 shuffles use it
+            ES3.Save<int>("LastUsedSeed", Selenes_Choice.LastUsedSeed, GameNetworkManager.Instance.currentSaveFileName);
 
             string ignoreList = Selenes_Choice.Config.IgnoreMoons;
             string blacklist = Selenes_Choice.Config.BlacklistMoons;
+            string storylist = Selenes_Choice.Config.StoryLogMoons;
             string treasurelist = Selenes_Choice.Config.TreasureMoons;
-            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist);
+            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist, storylist);
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
 
@@ -72,7 +74,7 @@ namespace Selenes_Choice
             Random.State originalState = Random.state;
             Random.InitState(StartSeed);
 
-            UpdateConfig.BracketMoons();
+            UpdateConfig.Instance.BracketMoons();
 
             int randomFreeIndex = Random.Range(0, freeLevels.Count); // gets the one holy "safety moon"
             randomFreeLevel = freeLevels[randomFreeIndex];

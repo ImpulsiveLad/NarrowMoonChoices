@@ -118,34 +118,37 @@ namespace Selenes_Choice
             {
                 __instance.gameObject.AddComponent<ShareSnT>();
             }
-            if (__instance.gameObject.GetComponent<UpdateConfig>() == null)
-            {
-                __instance.gameObject.AddComponent<UpdateConfig>();
-            }
-            if (__instance.gameObject.GetComponent<ListProcessor>() == null)
-            {
-                __instance.gameObject.AddComponent<ListProcessor>();
-            }
         }
     }
-    public class UpdateConfig : NetworkBehaviour
+    public class UpdateConfig
     {
+        private static readonly UpdateConfig _instance = new UpdateConfig();
+
         public static int freeMoonCount = Selenes_Choice.Config.FreeMoonCount;
         public static int paidMoonCount = Selenes_Choice.Config.PaidMoonCount;
         public static int randomMoonCount = Selenes_Choice.Config.RandomMoonCount;
-        public static void BracketMoons() // I call this everytime I need to use the config values, I essentially made discount variables that are reset constantly by this
+        private UpdateConfig() { }
+        public static UpdateConfig Instance
+        {
+            get
+            {
+                return _instance;
+            }
+        }
+        public void BracketMoons() // Call this every time you need to use the config values
         {
             string ignoreList = Selenes_Choice.Config.IgnoreMoons;
             string blacklist = Selenes_Choice.Config.BlacklistMoons;
+            string storylist = Selenes_Choice.Config.StoryLogMoons;
             string treasurelist = Selenes_Choice.Config.TreasureMoons;
-            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist);
+            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist, storylist);
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
             Selenes_Choice.instance.mls.LogInfo("allLevels " + allLevels.Count);
             List<ExtendedLevel> freeLevels = allLevels.Where(level => level.RoutePrice == 0).ToList();
             Selenes_Choice.instance.mls.LogInfo("freeLevels " + freeLevels.Count);
             List<ExtendedLevel> paidLevels = allLevels.Where(level => level.RoutePrice != 0).ToList();
-            Selenes_Choice.instance.mls.LogInfo("paid levels " +  paidLevels.Count);
+            Selenes_Choice.instance.mls.LogInfo("paid levels " + paidLevels.Count);
 
             if (paidLevels.Count == 0 && Selenes_Choice.Config.PaidMoonRollover)
             {
@@ -195,9 +198,20 @@ namespace Selenes_Choice
             }
         }
     }
-    public class ListProcessor : NetworkBehaviour
+    public class ListProcessor
     {
-        public static void ProcessLists()
+        private static readonly ListProcessor _instance = new ListProcessor();
+
+        private ListProcessor() { }
+
+        public static ListProcessor Instance
+        {
+            get
+            {
+                return _instance;
+            }
+        }
+        public void ProcessLists()
         {
             string IgnoreList = Selenes_Choice.Config.IgnoreMoons;
 
@@ -216,12 +230,20 @@ namespace Selenes_Choice
                     level.IsRouteHidden = false;
                 }
             }
-
             string BlackList = Selenes_Choice.Config.BlacklistMoons;
 
             List<ExtendedLevel> BlacklistThese = PatchedContent.ExtendedLevels.Where(level => BlackList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
 
             foreach (ExtendedLevel level in BlacklistThese)
+            {
+                level.IsRouteLocked = true;
+                level.IsRouteHidden = true;
+            }
+            string StoryList = Selenes_Choice.Config.StoryLogMoons;
+
+            List<ExtendedLevel> StoryThese = PatchedContent.ExtendedLevels.Where(level => StoryList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
+
+            foreach (ExtendedLevel level in StoryThese)
             {
                 level.IsRouteLocked = true;
                 level.IsRouteHidden = true;
@@ -235,10 +257,8 @@ namespace Selenes_Choice
             {
                 level.IsRouteLocked = false;
                 level.IsRouteHidden = true;
-                if (Selenes_Choice.Config.TreasureBool == true)
+                if (Selenes_Choice.Config.TreasureBool)
                 {
-                    level.SelectableLevel.minTotalScrapValue = (int)(level.SelectableLevel.minTotalScrapValue * Selenes_Choice.Config.TreasureBonus);
-                    level.SelectableLevel.maxTotalScrapValue = (int)(level.SelectableLevel.maxTotalScrapValue * Selenes_Choice.Config.TreasureBonus);
                     level.SelectableLevel.minScrap = (int)(level.SelectableLevel.minScrap * Selenes_Choice.Config.TreasureBonus);
                     level.SelectableLevel.maxScrap = (int)(level.SelectableLevel.maxScrap * Selenes_Choice.Config.TreasureBonus);
                 }

@@ -13,7 +13,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "1.3.6";
+        private const string modVersion = "1.4.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -62,6 +62,7 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<bool> DailyOrQuota { get; private set; }
         [DataMember] public SyncedEntry<string> IgnoreMoons { get; private set; }
         [DataMember] public SyncedEntry<string> BlacklistMoons { get; private set; }
+        [DataMember] public SyncedEntry<string> StoryLogMoons { get; private set; }
         [DataMember] public SyncedEntry<string> TreasureMoons { get; private set; }
         [DataMember] public SyncedEntry<bool> TreasureBool { get; private set; }
         [DataMember] public SyncedEntry<float> TreasureBonus { get; private set; }
@@ -104,11 +105,17 @@ namespace Selenes_Choice
             BlacklistMoons = cfg.BindSyncedEntry("Lists",
                 "Blacklist Moons",
                 "Liquidation",
-                "Any moons listed here will be indefinitely hidden and locked, any moons here will also be excluded from the shuffle. Moon names must be spelled exactly and correctly. For example, ‘Experimentation,Assurance,Vow’ would be counted, but ‘Experimentatio’ would not. (This is to avoid moon name mix-ups)");
-           
+                "Any moons listed here will be indefinitely hidden and locked, any moons here will also be excluded from the shuffle. Moon names must be spelled exactly and correctly. For example, ‘Experimentation,Assurance,Vow’ would be counted, but ‘Experimentatio’ would not. (This is to avoid moon name mix-ups).");
+
+            StoryLogMoons = cfg.BindSyncedEntry("Lists",
+                "Story Log Moons",
+                "Penumbra,Sector-0",
+                "Similar to the blacklist, although the moons on this list are specially configured such that a log is required to unlock them. Currently, Rosie’s Moons is the only mod utilizing this feature.\nAdding any moons here outside of those two defaults will just make them perma locked and hidden as in the blacklist.");
+
+
             TreasureMoons = cfg.BindSyncedEntry("Lists",
                 "Treasure(?) Moons",
-                "StarlancerZero,Penumbra,Cosmocos",
+                "StarlancerZero,Cosmocos",
                 "Any moons that are listed here will remain hidden but be routable (if you know the routing key *winky face*) Just as the other two lists, these are not in the shuffle. The config section below allows you to make them be 'Treasure Moons.' Moon names must be spelled exactly and correctly. For example, ‘Experimentation,Assurance,Vow’ would be counted, but ‘Experimentatio’ would not. (This is to avoid moon name mix-ups)");
 
             TreasureBool = cfg.BindSyncedEntry("Treasure",

@@ -11,13 +11,14 @@ namespace Selenes_Choice
     {
         static void Postfix()
         {
-            ListProcessor.ProcessLists();
             Selenes_Choice.LastUsedSeed = StartOfRound.Instance.randomMapSeed;
+            ES3.Save<int>("LastUsedSeed", Selenes_Choice.LastUsedSeed, GameNetworkManager.Instance.currentSaveFileName);
 
             string ignoreList = Selenes_Choice.Config.IgnoreMoons;
             string blacklist = Selenes_Choice.Config.BlacklistMoons;
+            string storylist = Selenes_Choice.Config.StoryLogMoons;
             string treasurelist = Selenes_Choice.Config.TreasureMoons;
-            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist);
+            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist, storylist);
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
 
@@ -35,7 +36,7 @@ namespace Selenes_Choice
             Random.State originalState = Random.state;
             Random.InitState(StartOfRound.Instance.randomMapSeed);
 
-            UpdateConfig.BracketMoons();
+            UpdateConfig.Instance.BracketMoons();
 
             int randomFreeIndex = Random.Range(0, freeLevels.Count); // gets the one holy "safety moon"
             randomFreeLevel = freeLevels[randomFreeIndex];

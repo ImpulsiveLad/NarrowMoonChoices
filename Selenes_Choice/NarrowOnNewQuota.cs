@@ -11,15 +11,16 @@ namespace Selenes_Choice
     {
         static void Postfix()
         {
-            ListProcessor.ProcessLists();
             int NewQuotaSeed = TimeOfDay.Instance.profitQuota + GetLobby.GrabbedLobby; // The random moons after getting a new quota will be the new quota and the lobbyID
 
             Selenes_Choice.LastUsedSeed = NewQuotaSeed;
+            ES3.Save<int>("LastUsedSeed", Selenes_Choice.LastUsedSeed, GameNetworkManager.Instance.currentSaveFileName);
 
             string ignoreList = Selenes_Choice.Config.IgnoreMoons;
             string blacklist = Selenes_Choice.Config.BlacklistMoons;
+            string storylist = Selenes_Choice.Config.StoryLogMoons;
             string treasurelist = Selenes_Choice.Config.TreasureMoons;
-            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist);
+            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist, storylist);
 
             List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
 
@@ -37,7 +38,7 @@ namespace Selenes_Choice
             Random.State originalState = Random.state;
             Random.InitState(NewQuotaSeed);
 
-            UpdateConfig.BracketMoons();
+            UpdateConfig.Instance.BracketMoons();
 
             int randomFreeIndex = Random.Range(0, freeLevels.Count); // gets the one holy "safety moon"
             randomFreeLevel = freeLevels[randomFreeIndex];
