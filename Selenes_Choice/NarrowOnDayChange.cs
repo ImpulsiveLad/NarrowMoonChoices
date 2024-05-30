@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using LethalLevelLoader;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,16 +12,19 @@ namespace Selenes_Choice
     {
         static void Postfix()
         {
+            ShareSnT.Instance.StartCoroutine(WaitOnDay());
+        }
+        static IEnumerator WaitOnDay()
+        {
+            yield return new WaitForSeconds(2);
+            ProcessData();
+        }
+        static void ProcessData()
+        {
             Selenes_Choice.LastUsedSeed = StartOfRound.Instance.randomMapSeed;
             ES3.Save<int>("LastUsedSeed", Selenes_Choice.LastUsedSeed, GameNetworkManager.Instance.currentSaveFileName);
 
-            string ignoreList = Selenes_Choice.Config.IgnoreMoons;
-            string blacklist = Selenes_Choice.Config.BlacklistMoons;
-            string storylist = Selenes_Choice.Config.StoryLogMoons;
-            string treasurelist = Selenes_Choice.Config.TreasureMoons;
-            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist, storylist);
-
-            List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
+            List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !ListProcessor.Instance.ExclusionList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
 
             foreach (ExtendedLevel level in allLevels)
             {
@@ -41,8 +45,13 @@ namespace Selenes_Choice
             int randomFreeIndex = Random.Range(0, freeLevels.Count); // gets the one holy "safety moon"
             randomFreeLevel = freeLevels[randomFreeIndex];
             randomFreeLevel.IsRouteHidden = false;
+            if (Selenes_Choice.Config.ClearWeather)
+            {
+                randomFreeLevel.SelectableLevel.currentWeather = LevelWeatherType.None;
+            }
             allLevels.Remove(randomFreeLevel);
             freeLevels.Remove(randomFreeLevel);
+            Selenes_Choice.PreviousSafetyMoon = randomFreeLevel;
 
             Selenes_Choice.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
 
@@ -105,6 +114,24 @@ namespace Selenes_Choice
                     StartOfRound.Instance.ChangePlanet();
                 }
             }
+        }
+    }
+    [HarmonyPatch(typeof(StartOfRound), "PassTimeToNextDay")]
+    public class KeepWeather
+    {
+        static void Postfix()
+        {
+            ShareSnT.Instance.StartCoroutine(WaitOnWeather());
+        }
+        static IEnumerator WaitOnWeather()
+        {
+            yield return new WaitForSeconds(2);
+            SetTheWeather();
+        }
+        static void SetTheWeather()
+        {
+            Selenes_Choice.PreviousSafetyMoon.SelectableLevel.currentWeather = LevelWeatherType.None;
+            StartOfRound.Instance.SetMapScreenInfoToCurrentLevel();
         }
     }
 }

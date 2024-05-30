@@ -5,6 +5,7 @@ using HarmonyLib;
 using CSync.Extensions;
 using CSync.Lib;
 using System.Runtime.Serialization;
+using LethalLevelLoader;
 
 namespace Selenes_Choice
 {
@@ -13,7 +14,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "1.4.0";
+        private const string modVersion = "1.4.5";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -21,6 +22,8 @@ namespace Selenes_Choice
         public static Selenes_Choice instance;
 
         public static int LastUsedSeed;
+
+        public static ExtendedLevel PreviousSafetyMoon;
 
         public new static SyncConfig Config;
 
@@ -46,9 +49,14 @@ namespace Selenes_Choice
             {
                 harmony.PatchAll(typeof(HideMoonsOnDayChange));
             }
-            if (Config.DailyOrQuota == true)
+            if (Config.DailyOrQuota)
             {
                 harmony.PatchAll(typeof(HideMoonsOnNewQuota));
+
+                if (Config.ClearWeather)
+                {
+                    harmony.PatchAll(typeof(KeepWeather));
+                }
             }
 
             mls = BepInEx.Logging.Logger.CreateLogSource(modGUID);
@@ -62,40 +70,46 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<bool> DailyOrQuota { get; private set; }
         [DataMember] public SyncedEntry<string> IgnoreMoons { get; private set; }
         [DataMember] public SyncedEntry<string> BlacklistMoons { get; private set; }
-        [DataMember] public SyncedEntry<string> StoryLogMoons { get; private set; }
         [DataMember] public SyncedEntry<string> TreasureMoons { get; private set; }
         [DataMember] public SyncedEntry<bool> TreasureBool { get; private set; }
         [DataMember] public SyncedEntry<float> TreasureBonus { get; private set; }
         [DataMember] public SyncedEntry<int> PaidMoonCount { get; private set; }
         [DataMember] public SyncedEntry<bool> PaidMoonRollover { get; private set; }
+        [DataMember] public SyncedEntry<bool> StoryMoonCompat { get; private set; }
+        [DataMember] public SyncedEntry<bool> ClearWeather { get; private set; }
         public SyncConfig(ConfigFile cfg) : base("Selenes_Choice")
         {
             ConfigManager.Register(this);
 
-            FreeMoonCount = cfg.BindSyncedEntry("General",
+            FreeMoonCount = cfg.BindSyncedEntry("_General_",
                 "Free Moon Count",
                 1,
                 "How many guaranteed free moons should be included?");
 
-            PaidMoonCount = cfg.BindSyncedEntry("General",
+            PaidMoonCount = cfg.BindSyncedEntry("_General_",
                 "Paid Moon Count",
                 1,
                 "How many guaranteed paid moons should be included?");
 
-            RandomMoonCount = cfg.BindSyncedEntry("General",
+            RandomMoonCount = cfg.BindSyncedEntry("_General_",
                 "Extra Moon Count",
                 1,
                 "How many additional moons should be added? (These can be free or paid)");
 
-            PaidMoonRollover = cfg.BindSyncedEntry("General",
+            PaidMoonRollover = cfg.BindSyncedEntry("_General_",
                 "Roll Over Paid Moons",
                 true,
                 "If this is true, when there are no paid moons left, the Paid Moon Count will be added to the Extra Moon Count.");
 
-            DailyOrQuota = cfg.BindSyncedEntry("General",
+            DailyOrQuota = cfg.BindSyncedEntry("_General_",
                 "New Moons Only on New Quota",
                 false,
                 "If set to true, the moons will reshuffle only after a new quota is assigned, not daily.");
+
+            ClearWeather = cfg.BindSyncedEntry("_General_",
+                "Clear Weather on the Safety Moon?",
+                false,
+                "If set to true, the first free moon selected and the one that will be auto-routed to will always have clear weather.");
 
             IgnoreMoons = cfg.BindSyncedEntry("Lists",
                 "Ignore Moons",
@@ -107,16 +121,10 @@ namespace Selenes_Choice
                 "Liquidation",
                 "Any moons listed here will be indefinitely hidden and locked, any moons here will also be excluded from the shuffle. Moon names must be spelled exactly and correctly. For example, ‘Experimentation,Assurance,Vow’ would be counted, but ‘Experimentatio’ would not. (This is to avoid moon name mix-ups).");
 
-            StoryLogMoons = cfg.BindSyncedEntry("Lists",
-                "Story Log Moons",
-                "Penumbra,Sector-0",
-                "Similar to the blacklist, although the moons on this list are specially configured such that a log is required to unlock them. Currently, Rosie’s Moons is the only mod utilizing this feature.\nAdding any moons here outside of those two defaults will just make them perma locked and hidden as in the blacklist.");
-
-
             TreasureMoons = cfg.BindSyncedEntry("Lists",
                 "Treasure(?) Moons",
                 "StarlancerZero,Cosmocos",
-                "Any moons that are listed here will remain hidden but be routable (if you know the routing key *winky face*) Just as the other two lists, these are not in the shuffle. The config section below allows you to make them be 'Treasure Moons.' Moon names must be spelled exactly and correctly. For example, ‘Experimentation,Assurance,Vow’ would be counted, but ‘Experimentatio’ would not. (This is to avoid moon name mix-ups)");
+                "Any moons listed here will remain hidden but still be routable (if you know the routing key *winky face*) Just as the other two lists, these are not in the shuffle. The config section below allows you to make them be 'Treasure Moons.' Moon names must be spelled exactly and correctly. For example, ‘Experimentation,Assurance,Vow’ would be counted, but ‘Experimentatio’ would not. (This is to avoid moon name mix-ups)");
 
             TreasureBool = cfg.BindSyncedEntry("Treasure",
                 "Bonus For Secret Moons?",
@@ -127,6 +135,11 @@ namespace Selenes_Choice
                 "Treasure Bonus",
                 1.25f,
                 "This multiplier is applied to the scrap value and count on treasure moons if the setting above is true.");
+
+            StoryMoonCompat = cfg.BindSyncedEntry("Compat",
+                "Story Log Unlock Compat",
+                true,
+                "If set to true, certain moons will be excluded from the shuffle and untouched by this mod. Currently, this only includes two moons from Rosie's Moons.");
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using LethalLevelLoader;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,18 +12,21 @@ namespace Selenes_Choice
     {
         static void Postfix()
         {
+            ShareSnT.Instance.StartCoroutine(WaitOnDeath());
+        }
+        static IEnumerator WaitOnDeath()
+        {
+            yield return new WaitForSeconds(2);
+            ProcessData();
+        }
+        static void ProcessData()
+        {
             int ResettedSeed = ResetShipPatch.TimesCalled + GetLobby.GrabbedLobby; // Uses the LobbyID + the amount of failed quotas
 
             Selenes_Choice.LastUsedSeed = ResettedSeed;
             ES3.Save<int>("LastUsedSeed", Selenes_Choice.LastUsedSeed, GameNetworkManager.Instance.currentSaveFileName);
 
-            string ignoreList = Selenes_Choice.Config.IgnoreMoons;
-            string blacklist = Selenes_Choice.Config.BlacklistMoons;
-            string storylist = Selenes_Choice.Config.StoryLogMoons;
-            string treasurelist = Selenes_Choice.Config.TreasureMoons;
-            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist, storylist);
-
-            List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
+            List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !ListProcessor.Instance.ExclusionList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
 
             foreach (ExtendedLevel level in allLevels)
             {
@@ -43,10 +47,15 @@ namespace Selenes_Choice
             int randomFreeIndex = Random.Range(0, freeLevels.Count); // gets the one holy "safety moon"
             randomFreeLevel = freeLevels[randomFreeIndex];
             randomFreeLevel.IsRouteHidden = false;
+            if (Selenes_Choice.Config.ClearWeather)
+            {
+                randomFreeLevel.SelectableLevel.currentWeather = LevelWeatherType.None;
+            }
             allLevels.Remove(randomFreeLevel);
             freeLevels.Remove(randomFreeLevel);
+            Selenes_Choice.PreviousSafetyMoon = randomFreeLevel;
 
-            Selenes_Choice.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
+            Selenes_Choice.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.NumberlessPlanetName);
 
             for (int i = 0; i < (UpdateConfig.freeMoonCount - 1); i++) // gets other free moons
             {

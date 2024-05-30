@@ -137,13 +137,7 @@ namespace Selenes_Choice
         }
         public void BracketMoons() // Call this every time you need to use the config values
         {
-            string ignoreList = Selenes_Choice.Config.IgnoreMoons;
-            string blacklist = Selenes_Choice.Config.BlacklistMoons;
-            string storylist = Selenes_Choice.Config.StoryLogMoons;
-            string treasurelist = Selenes_Choice.Config.TreasureMoons;
-            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist, storylist);
-
-            List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
+            List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !ListProcessor.Instance.ExclusionList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
             Selenes_Choice.instance.mls.LogInfo("allLevels " + allLevels.Count);
             List<ExtendedLevel> freeLevels = allLevels.Where(level => level.RoutePrice == 0).ToList();
             Selenes_Choice.instance.mls.LogInfo("freeLevels " + freeLevels.Count);
@@ -202,6 +196,7 @@ namespace Selenes_Choice
     {
         private static readonly ListProcessor _instance = new ListProcessor();
 
+        public string ExclusionList { get; private set; }
         private ListProcessor() { }
 
         public static ListProcessor Instance
@@ -213,6 +208,17 @@ namespace Selenes_Choice
         }
         public void ProcessLists()
         {
+            string ignoreList = Selenes_Choice.Config.IgnoreMoons;
+            string blacklist = Selenes_Choice.Config.BlacklistMoons;
+            string treasurelist = Selenes_Choice.Config.TreasureMoons;
+            ExclusionList = string.Join(",", ignoreList, blacklist, treasurelist);
+
+            if (Selenes_Choice.Config.StoryMoonCompat.Value)
+            {
+                string storylist = "Penumbra,Sector-0";
+                ExclusionList = string.Join(",", ExclusionList, storylist);
+            }
+
             string IgnoreList = Selenes_Choice.Config.IgnoreMoons;
 
             List<ExtendedLevel> IgnoreThese = PatchedContent.ExtendedLevels.Where(level => IgnoreList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
@@ -239,16 +245,6 @@ namespace Selenes_Choice
                 level.IsRouteLocked = true;
                 level.IsRouteHidden = true;
             }
-            string StoryList = Selenes_Choice.Config.StoryLogMoons;
-
-            List<ExtendedLevel> StoryThese = PatchedContent.ExtendedLevels.Where(level => StoryList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
-
-            foreach (ExtendedLevel level in StoryThese)
-            {
-                level.IsRouteLocked = true;
-                level.IsRouteHidden = true;
-            }
-
             string TreasureList = Selenes_Choice.Config.TreasureMoons;
 
             List<ExtendedLevel> TreasureThese = PatchedContent.ExtendedLevels.Where(level => TreasureList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();

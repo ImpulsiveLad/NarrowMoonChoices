@@ -17,21 +17,21 @@ namespace Selenes_Choice
             ListProcessor.Instance.ProcessLists();
             if (!NetworkManager.Singleton.IsHost) // someone that isn't host joins
             {
-                ShareSnT.Instance.RequestData();
+                ShareSnT.Instance.RequestData(); // Request host data
                 ShareSnT.Instance.StartCoroutine(WaitAndProcessData());
             }
             else // host just made a server
             {
-                if (ES3.KeyExists("LastUsedSeed", GameNetworkManager.Instance.currentSaveFileName))
+                if (ES3.KeyExists("LastUsedSeed", GameNetworkManager.Instance.currentSaveFileName)) // Save file exists
                 {
-                    Selenes_Choice.LastUsedSeed = ES3.Load<int>("LastUsedSeed", GameNetworkManager.Instance.currentSaveFileName);
+                    Selenes_Choice.LastUsedSeed = ES3.Load<int>("LastUsedSeed", GameNetworkManager.Instance.currentSaveFileName); // Uses last saved moons on the file
                     StartSeed = Selenes_Choice.LastUsedSeed;
                 }
-                else
+                else // New save file
                 {
-                    StartSeed = GetLobby.GrabbedLobby;
+                    StartSeed = GetLobby.GrabbedLobby; // Intial seed is the last digits of the lobby code
                 }
-                ShareSnT.Instance.StartCoroutine(WaitOnTF());
+                ShareSnT.Instance.StartCoroutine(WaitOnStart());
             }
         }
         static IEnumerator WaitAndProcessData() // just in case data takes a few frames
@@ -40,9 +40,9 @@ namespace Selenes_Choice
 
             StartSeed = Selenes_Choice.LastUsedSeed;
 
-            ShareSnT.Instance.StartCoroutine(WaitOnTF());
+            ShareSnT.Instance.StartCoroutine(WaitOnStart());
         }
-        static IEnumerator WaitOnTF()
+        static IEnumerator WaitOnStart() // Gives some time for terminal formatter to load
         {
             yield return new WaitForSeconds(2);
             ProcessData();
@@ -52,13 +52,7 @@ namespace Selenes_Choice
             Selenes_Choice.LastUsedSeed = StartSeed; // LastUsedSeed is here to remember the moons if the host closes and reopens the lobby, all of the 4 shuffles use it
             ES3.Save<int>("LastUsedSeed", Selenes_Choice.LastUsedSeed, GameNetworkManager.Instance.currentSaveFileName);
 
-            string ignoreList = Selenes_Choice.Config.IgnoreMoons;
-            string blacklist = Selenes_Choice.Config.BlacklistMoons;
-            string storylist = Selenes_Choice.Config.StoryLogMoons;
-            string treasurelist = Selenes_Choice.Config.TreasureMoons;
-            string exclusionlist = string.Join(",", ignoreList, blacklist, treasurelist, storylist);
-
-            List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !exclusionlist.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
+            List<ExtendedLevel> allLevels = PatchedContent.ExtendedLevels.Where(level => !ListProcessor.Instance.ExclusionList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
 
             foreach (ExtendedLevel level in allLevels)
             {
@@ -79,8 +73,13 @@ namespace Selenes_Choice
             int randomFreeIndex = Random.Range(0, freeLevels.Count); // gets the one holy "safety moon"
             randomFreeLevel = freeLevels[randomFreeIndex];
             randomFreeLevel.IsRouteHidden = false;
+            if (Selenes_Choice.Config.ClearWeather)
+            {
+                randomFreeLevel.SelectableLevel.currentWeather = LevelWeatherType.None;
+            }
             freeLevels.Remove(randomFreeLevel);
             allLevels.Remove(randomFreeLevel);
+            Selenes_Choice.PreviousSafetyMoon = randomFreeLevel;
 
             Selenes_Choice.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
 
