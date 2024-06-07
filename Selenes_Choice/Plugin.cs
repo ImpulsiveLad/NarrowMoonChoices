@@ -14,7 +14,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "1.4.5";
+        private const string modVersion = "1.5.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -24,6 +24,8 @@ namespace Selenes_Choice
         public static int LastUsedSeed;
 
         public static ExtendedLevel PreviousSafetyMoon;
+
+        public static EndOfGameStats stats = new EndOfGameStats();
 
         public new static SyncConfig Config;
 
@@ -40,6 +42,7 @@ namespace Selenes_Choice
             harmony.PatchAll(typeof(ListProcessor));
             harmony.PatchAll(typeof(UpdateConfig));
             harmony.PatchAll(typeof(HideMoonsOnStart));
+            harmony.PatchAll(typeof(IncrementDaysSpent));
             harmony.PatchAll(typeof(HideMoonsOnGameOver));
             harmony.PatchAll(typeof(GlobalVariables));
             harmony.PatchAll(typeof(ShipleaveCalc));
@@ -77,6 +80,9 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<bool> PaidMoonRollover { get; private set; }
         [DataMember] public SyncedEntry<bool> StoryMoonCompat { get; private set; }
         [DataMember] public SyncedEntry<bool> ClearWeather { get; private set; }
+        [DataMember] public SyncedEntry<bool> DiscountMoons { get; private set; }
+        [DataMember] public SyncedEntry<int> MinDiscount { get; private set; }
+        [DataMember] public SyncedEntry<int> MaxDiscount { get; private set; }
         public SyncConfig(ConfigFile cfg) : base("Selenes_Choice")
         {
             ConfigManager.Register(this);
@@ -140,6 +146,21 @@ namespace Selenes_Choice
                 "Story Log Unlock Compat",
                 true,
                 "If set to true, certain moons will be excluded from the shuffle and untouched by this mod. Currently, this only includes two moons from Rosie's Moons.");
+
+            DiscountMoons = cfg.BindSyncedEntry("Discounts",
+                "Enable Moon Discounts?",
+                false,
+                "If set to true, paid moons selected by the shuffle with have a discount based on the next two settings.");
+
+            MinDiscount = cfg.BindSyncedEntry("Discounts",
+                "Min Discount",
+                40,
+                "Minimum percent for a moon to have its price reduced by. Must be less than the max.");
+
+            MaxDiscount = cfg.BindSyncedEntry("Discounts",
+                "Max Discount",
+                60,
+                "Maximum percent for a moon to have its price reduced by. Must be more than the min.");
         }
     }
 }

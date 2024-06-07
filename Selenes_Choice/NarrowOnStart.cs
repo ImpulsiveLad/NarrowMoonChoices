@@ -11,7 +11,9 @@ namespace Selenes_Choice
     [HarmonyPatch(typeof(HangarShipDoor), "Start")]
     public class HideMoonsOnStart
     {
+        public static int DaysSpent;
         public static int StartSeed;
+        public static int glump;
         static void Postfix()
         {
             ListProcessor.Instance.ProcessLists();
@@ -68,6 +70,7 @@ namespace Selenes_Choice
             Random.State originalState = Random.state;
             Random.InitState(StartSeed);
 
+            PriceManager.ResetPrices();
             UpdateConfig.Instance.BracketMoons();
 
             int randomFreeIndex = Random.Range(0, freeLevels.Count); // gets the one holy "safety moon"
@@ -101,6 +104,17 @@ namespace Selenes_Choice
                     PaidLevel.IsRouteHidden = false;
                     paidLevels.Remove(PaidLevel);
                     allLevels.Remove(PaidLevel);
+                    if (Selenes_Choice.Config.DiscountMoons)
+                    {
+                        PriceManager.originalPrices[PaidLevel] = PaidLevel.RoutePrice;
+                        int seed = StartSeed + glump;
+                        System.Random rand = new System.Random(seed);
+                        int randomNumber = rand.Next(UpdateConfig.minDiscount, UpdateConfig.maxDiscount + 1);
+                        int newRandomNumber = 100 - randomNumber;
+                        float discountValue = newRandomNumber / 100f;
+                        PaidLevel.RoutePrice = (int)(PaidLevel.RoutePrice * discountValue);
+                        glump++;
+                    }
                 }
             }
 
@@ -110,7 +124,19 @@ namespace Selenes_Choice
                 ExtendedLevel randomLevel = allLevels[randomIndex];
                 randomLevel.IsRouteHidden = false;
                 allLevels.Remove(randomLevel);
+                if (Selenes_Choice.Config.DiscountMoons)
+                {
+                    PriceManager.originalPrices[randomLevel] = randomLevel.RoutePrice;
+                    int seed = StartSeed + glump;
+                    System.Random rand = new System.Random(seed);
+                    int randomNumber = rand.Next(UpdateConfig.minDiscount, UpdateConfig.maxDiscount + 1);
+                    int newRandomNumber = 100 - randomNumber;
+                    float discountValue = newRandomNumber / 100f;
+                    randomLevel.RoutePrice = (int)(randomLevel.RoutePrice * discountValue);
+                    glump++;
+                }
             }
+            glump = 0;
             Random.state = originalState;
 
             foreach (ExtendedLevel level in allLevels)
@@ -133,7 +159,16 @@ namespace Selenes_Choice
             }
             else
             {
-                if (randomFreeLevel != null && randomFreeLevel != LevelManager.CurrentExtendedLevel)
+                if (ES3.KeyExists("DaysSpent", GameNetworkManager.Instance.currentSaveFileName))
+                {
+                    DaysSpent = Selenes_Choice.LastUsedSeed = ES3.Load<int>("DaysSpent", GameNetworkManager.Instance.currentSaveFileName);
+                }
+                else
+                {
+                    DaysSpent = 0;
+                }
+                Selenes_Choice.instance.mls.LogInfo("Days Spent: " + DaysSpent);
+                if (randomFreeLevel != null && randomFreeLevel != LevelManager.CurrentExtendedLevel && DaysSpent == 0)
                 {
                     int randomFreeLevelId = randomFreeLevel.SelectableLevel.levelID;
 
@@ -142,6 +177,15 @@ namespace Selenes_Choice
                     StartOfRound.Instance.ChangePlanet();
                 }
             }
+        }
+    }
+    [HarmonyPatch(typeof(StartOfRound), "EndOfGame")]
+    public class IncrementDaysSpent
+    {
+        static void Postfix()
+        {
+            Selenes_Choice.stats.daysSpent++;
+            ES3.Save<int>("DaysSpent", Selenes_Choice.stats.daysSpent, GameNetworkManager.Instance.currentSaveFileName);
         }
     }
 }

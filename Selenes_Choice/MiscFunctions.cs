@@ -127,6 +127,8 @@ namespace Selenes_Choice
         public static int freeMoonCount = Selenes_Choice.Config.FreeMoonCount;
         public static int paidMoonCount = Selenes_Choice.Config.PaidMoonCount;
         public static int randomMoonCount = Selenes_Choice.Config.RandomMoonCount;
+        public static int minDiscount = Selenes_Choice.Config.MinDiscount;
+        public static int maxDiscount = Selenes_Choice.Config.MaxDiscount;
         private UpdateConfig() { }
         public static UpdateConfig Instance
         {
@@ -189,6 +191,21 @@ namespace Selenes_Choice
             if (oldRandomMoonCount != randomMoonCount)
             {
                 Selenes_Choice.instance.mls.LogInfo("randomMoonCount changed from " + oldRandomMoonCount + " to " + randomMoonCount);
+            }
+
+            int oldminDiscount = minDiscount;
+            int oldmaxDiscount = maxDiscount;
+
+            minDiscount = Mathf.Clamp(minDiscount, 0, 100);
+            maxDiscount = Mathf.Clamp(maxDiscount, minDiscount, 100);
+
+            if (oldminDiscount != minDiscount)
+            {
+                Selenes_Choice.instance.mls.LogInfo("minDiscount changed from " + oldminDiscount + " to " + minDiscount);
+            }
+            if (oldminDiscount != maxDiscount)
+            {
+                Selenes_Choice.instance.mls.LogInfo("maxDiscount changed from " + oldmaxDiscount + " to " + maxDiscount);
             }
         }
     }
@@ -297,4 +314,17 @@ namespace Selenes_Choice
             __instance.statsUIElements.quotaDenominator.text = finalCount.ToString();
         }
     }
+    public static class PriceManager
+    {
+        public static Dictionary<ExtendedLevel, int> originalPrices = new Dictionary<ExtendedLevel, int>();
+        public static void ResetPrices()
+        {
+            foreach (var pair in originalPrices)
+            {
+                pair.Key.RoutePrice = pair.Value;
+            }
+            originalPrices.Clear();
+        }
+    }
+
 }

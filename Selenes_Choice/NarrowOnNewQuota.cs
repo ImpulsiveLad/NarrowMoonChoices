@@ -10,6 +10,7 @@ namespace Selenes_Choice
     [HarmonyPatch(typeof(HUDManager), "rackUpNewQuotaText")]
     public class HideMoonsOnNewQuota
     {
+        public static int glump;
         static void Postfix()
         {
             ShareSnT.Instance.StartCoroutine(WaitOnQuota());
@@ -42,6 +43,7 @@ namespace Selenes_Choice
             Random.State originalState = Random.state;
             Random.InitState(NewQuotaSeed);
 
+            PriceManager.ResetPrices();
             UpdateConfig.Instance.BracketMoons();
 
             int randomFreeIndex = Random.Range(0, freeLevels.Count); // gets the one holy "safety moon"
@@ -75,6 +77,17 @@ namespace Selenes_Choice
                     PaidLevel.IsRouteHidden = false;
                     paidLevels.Remove(PaidLevel);
                     allLevels.Remove(PaidLevel);
+                    if (Selenes_Choice.Config.DiscountMoons)
+                    {
+                        PriceManager.originalPrices[PaidLevel] = PaidLevel.RoutePrice;
+                        int seed = NewQuotaSeed + glump;
+                        System.Random rand = new System.Random(seed);
+                        int randomNumber = rand.Next(UpdateConfig.minDiscount, UpdateConfig.maxDiscount + 1);
+                        int newRandomNumber = 100 - randomNumber;
+                        float discountValue = newRandomNumber / 100f;
+                        PaidLevel.RoutePrice = (int)(PaidLevel.RoutePrice * discountValue);
+                        glump++;
+                    }
                 }
             }
 
@@ -84,7 +97,19 @@ namespace Selenes_Choice
                 ExtendedLevel randomLevel = allLevels[randomIndex];
                 randomLevel.IsRouteHidden = false;
                 allLevels.Remove(randomLevel);
+                if (Selenes_Choice.Config.DiscountMoons)
+                {
+                    PriceManager.originalPrices[randomLevel] = randomLevel.RoutePrice;
+                    int seed = NewQuotaSeed + glump;
+                    System.Random rand = new System.Random(seed);
+                    int randomNumber = rand.Next(UpdateConfig.minDiscount, UpdateConfig.maxDiscount + 1);
+                    int newRandomNumber = 100 - randomNumber;
+                    float discountValue = newRandomNumber / 100f;
+                    randomLevel.RoutePrice = (int)(randomLevel.RoutePrice * discountValue);
+                    glump++;
+                }
             }
+            glump = 0;
             Random.state = originalState;
 
             foreach (ExtendedLevel level in allLevels)
