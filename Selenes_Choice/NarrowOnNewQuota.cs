@@ -126,9 +126,7 @@ namespace Selenes_Choice
 
                 int CompanyID = gordionLevel.SelectableLevel.levelID;
 
-                StartOfRound.Instance.ChangeLevel(CompanyID);
-
-                StartOfRound.Instance.ChangePlanet();
+                StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
             }
             else
             {
@@ -136,9 +134,7 @@ namespace Selenes_Choice
                 {
                     int randomFreeLevelId = randomFreeLevel.SelectableLevel.levelID;
 
-                    StartOfRound.Instance.ChangeLevel(randomFreeLevelId);
-
-                    StartOfRound.Instance.ChangePlanet();
+                    StartOfRound.Instance.ChangeLevelServerRpc(randomFreeLevelId, Object.FindObjectOfType<Terminal>().groupCredits);
                 }
             }
         }

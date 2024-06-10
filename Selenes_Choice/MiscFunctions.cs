@@ -326,5 +326,4 @@ namespace Selenes_Choice
             originalPrices.Clear();
         }
     }
-
 }

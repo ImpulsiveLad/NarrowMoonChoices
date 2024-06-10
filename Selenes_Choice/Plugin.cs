@@ -14,7 +14,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "1.5.0";
+        private const string modVersion = "1.5.5";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
