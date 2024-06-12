@@ -22,7 +22,7 @@ namespace Selenes_Choice
         }
         static void ProcessData()
         {
-            int ResettedSeed = ResetShipPatch.TimesCalled + GetLobby.GrabbedLobby; // Uses the LobbyID + the amount of failed quotas
+            int ResettedSeed = (ResetShipPatch.TimesCalled * 1111) + GetLobby.GrabbedLobby; // Uses the LobbyID + the amount of failed quotas
 
             Selenes_Choice.LastUsedSeed = ResettedSeed;
             ES3.Save<int>("LastUsedSeed", Selenes_Choice.LastUsedSeed, GameNetworkManager.Instance.currentSaveFileName);
@@ -126,7 +126,11 @@ namespace Selenes_Choice
 
                 int CompanyID = gordionLevel.SelectableLevel.levelID;
 
-                StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                if (gordionLevel != LevelManager.CurrentExtendedLevel)
+                {
+                    StartOfRound.Instance.ChangeLevel(CompanyID);
+                    StartOfRound.Instance.ChangePlanet();
+                }
             }
             else
             {
@@ -134,7 +138,8 @@ namespace Selenes_Choice
                 {
                     int randomFreeLevelId = randomFreeLevel.SelectableLevel.levelID;
 
-                    StartOfRound.Instance.ChangeLevelServerRpc(randomFreeLevelId, Object.FindObjectOfType<Terminal>().groupCredits);
+                    StartOfRound.Instance.ChangeLevel(randomFreeLevelId);
+                    StartOfRound.Instance.ChangePlanet();
                 }
             }
         }

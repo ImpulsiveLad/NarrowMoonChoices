@@ -124,7 +124,10 @@ namespace Selenes_Choice
 
                 int CompanyID = gordionLevel.SelectableLevel.levelID;
 
-                StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                if (gordionLevel != LevelManager.CurrentExtendedLevel)
+                {
+                    StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                }
             }
             else
             {

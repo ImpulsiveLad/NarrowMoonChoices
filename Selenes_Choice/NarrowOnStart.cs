@@ -153,13 +153,16 @@ namespace Selenes_Choice
 
                 int CompanyID = gordionLevel.SelectableLevel.levelID;
 
-                StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                if (gordionLevel != LevelManager.CurrentExtendedLevel)
+                {
+                    StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                }
             }
             else
             {
                 if (ES3.KeyExists("DaysSpent", GameNetworkManager.Instance.currentSaveFileName))
                 {
-                    DaysSpent = Selenes_Choice.LastUsedSeed = ES3.Load<int>("DaysSpent", GameNetworkManager.Instance.currentSaveFileName);
+                    DaysSpent = ES3.Load<int>("DaysSpent", GameNetworkManager.Instance.currentSaveFileName);
                 }
                 else
                 {
