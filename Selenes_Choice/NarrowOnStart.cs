@@ -147,7 +147,7 @@ namespace Selenes_Choice
                 }
             }
 
-            if (TimeOfDay.Instance.daysUntilDeadline == 0)
+            if (TimeOfDay.Instance.daysUntilDeadline == 0 && NetworkManager.Singleton.IsHost)
             {
                 ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
 
@@ -169,7 +169,7 @@ namespace Selenes_Choice
                     DaysSpent = 0;
                 }
                 Selenes_Choice.instance.mls.LogInfo("Days Spent: " + DaysSpent);
-                if (randomFreeLevel != null && randomFreeLevel != LevelManager.CurrentExtendedLevel && DaysSpent == 0)
+                if (randomFreeLevel != null && randomFreeLevel != LevelManager.CurrentExtendedLevel && DaysSpent == 0 && NetworkManager.Singleton.IsHost)
                 {
                     int randomFreeLevelId = randomFreeLevel.SelectableLevel.levelID;
 
