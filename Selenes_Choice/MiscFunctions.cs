@@ -129,6 +129,7 @@ namespace Selenes_Choice
         public static int randomMoonCount = Selenes_Choice.Config.RandomMoonCount;
         public static int minDiscount = Selenes_Choice.Config.MinDiscount;
         public static int maxDiscount = Selenes_Choice.Config.MaxDiscount;
+        public static bool autoRoute = Selenes_Choice.Config.AutoRoute;
         private UpdateConfig() { }
         public static UpdateConfig Instance
         {

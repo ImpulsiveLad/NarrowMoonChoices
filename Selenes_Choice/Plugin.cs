@@ -71,6 +71,7 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<int> FreeMoonCount { get; private set; }
         [DataMember] public SyncedEntry<int> RandomMoonCount { get; private set; }
         [DataMember] public SyncedEntry<bool> DailyOrQuota { get; private set; }
+        [DataMember] public SyncedEntry<bool> AutoRoute { get; private set; }
         [DataMember] public SyncedEntry<string> IgnoreMoons { get; private set; }
         [DataMember] public SyncedEntry<string> BlacklistMoons { get; private set; }
         [DataMember] public SyncedEntry<string> TreasureMoons { get; private set; }
@@ -111,6 +112,11 @@ namespace Selenes_Choice
                 "New Moons Only on New Quota",
                 false,
                 "If set to true, the moons will reshuffle only after a new quota is assigned, not daily.");
+            
+            AutoRoute = cfg.BindSyncedEntry("_General_",
+                "Auto Route Ship",
+                true,
+                "If set to true, when moons are re-rolled the ship will automatically route to the first free planet.");
 
             ClearWeather = cfg.BindSyncedEntry("_General_",
                 "Clear Weather on the Safety Moon?",

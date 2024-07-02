@@ -118,26 +118,30 @@ namespace Selenes_Choice
                 }
             }
 
-            if (TimeOfDay.Instance.daysUntilDeadline == 0)
-            {
-                ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
-
-                int CompanyID = gordionLevel.SelectableLevel.levelID;
-
-                if (gordionLevel != LevelManager.CurrentExtendedLevel)
+            if (UpdateConfig.autoRoute) {
+                if (TimeOfDay.Instance.daysUntilDeadline == 0)
                 {
-                    StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                    ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
+
+                    int CompanyID = gordionLevel.SelectableLevel.levelID;
+
+                    if (gordionLevel != LevelManager.CurrentExtendedLevel)
+                    {
+                        StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                    }
+                }
+                else
+                {
+                    if (randomFreeLevel != null && randomFreeLevel != LevelManager.CurrentExtendedLevel)
+                    {
+                        int randomFreeLevelId = randomFreeLevel.SelectableLevel.levelID;
+
+                        StartOfRound.Instance.ChangeLevelServerRpc(randomFreeLevelId, Object.FindObjectOfType<Terminal>().groupCredits);
+                    }
                 }
             }
-            else
-            {
-                if (randomFreeLevel != null && randomFreeLevel != LevelManager.CurrentExtendedLevel)
-                {
-                    int randomFreeLevelId = randomFreeLevel.SelectableLevel.levelID;
 
-                    StartOfRound.Instance.ChangeLevelServerRpc(randomFreeLevelId, Object.FindObjectOfType<Terminal>().groupCredits);
-                }
-            }
+            
         }
     }
     [HarmonyPatch(typeof(StartOfRound), "PassTimeToNextDay")]
