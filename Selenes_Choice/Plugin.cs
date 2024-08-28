@@ -6,6 +6,9 @@ using CSync.Extensions;
 using CSync.Lib;
 using System.Runtime.Serialization;
 using LethalLevelLoader;
+using static Selenes_Choice.UpdateConfig;
+using System.Reflection;
+using UnityEngine;
 
 namespace Selenes_Choice
 {
@@ -14,7 +17,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "1.5.7";
+        private const string modVersion = "2.0.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -29,12 +32,15 @@ namespace Selenes_Choice
 
         public new static SyncConfig Config;
 
+        public static bool LoadedWR = false;
+
         void Awake()
         {
             instance = this;
 
             Config = new SyncConfig(base.Config);
 
+            harmony.PatchAll(typeof(SyncRVM2));
             harmony.PatchAll(typeof(GetLobby));
             harmony.PatchAll(typeof(ResetShipPatch));
             harmony.PatchAll(typeof(ShareSnT));
@@ -47,6 +53,7 @@ namespace Selenes_Choice
             harmony.PatchAll(typeof(GlobalVariables));
             harmony.PatchAll(typeof(ShipleaveCalc));
             harmony.PatchAll(typeof(HUDManagerPatch));
+            harmony.PatchAll(typeof(ResetSaveStatusOnDC));
 
             if (Config.DailyOrQuota == false)
             {
@@ -55,10 +62,25 @@ namespace Selenes_Choice
             if (Config.DailyOrQuota)
             {
                 harmony.PatchAll(typeof(HideMoonsOnNewQuota));
+                harmony.PatchAll(typeof(AutoRouteToCompany));
 
                 if (Config.ClearWeather)
                 {
                     harmony.PatchAll(typeof(KeepWeather));
+                }
+            }
+
+            var types = Assembly.GetExecutingAssembly().GetTypes();
+            foreach (var type in types)
+            {
+                var methods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                foreach (var method in methods)
+                {
+                    var attributes = method.GetCustomAttributes(typeof(RuntimeInitializeOnLoadMethodAttribute), false);
+                    if (attributes.Length > 0)
+                    {
+                        method.Invoke(null, null);
+                    }
                 }
             }
 
@@ -83,6 +105,9 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<bool> DiscountMoons { get; private set; }
         [DataMember] public SyncedEntry<int> MinDiscount { get; private set; }
         [DataMember] public SyncedEntry<int> MaxDiscount { get; private set; }
+        [DataMember] public SyncedEntry<bool> RememberMoons { get; private set; }
+        [DataMember] public SyncedEntry<bool> RememberAll { get; private set; }
+        [DataMember] public SyncedEntry<int> DaysToRemember { get; private set; }
         public SyncConfig(ConfigFile cfg) : base("Selenes_Choice")
         {
             ConfigManager.Register(this);
@@ -116,6 +141,21 @@ namespace Selenes_Choice
                 "Clear Weather on the Safety Moon?",
                 false,
                 "If set to true, the first free moon selected and the one that will be auto-routed to will always have clear weather.");
+
+            RememberMoons = cfg.BindSyncedEntry("_Remember Moons_",
+                "Remember Moons?",
+                true,
+                "If set to true, the 'safety moon' is removed from the shuffle for x days (see settings below).");
+
+            RememberAll = cfg.BindSyncedEntry("_Remember Moons_",
+                "Remember All?",
+                false,
+                "If set to true, all moons that were included in a last shuffle will be removed for x days in addition to the 'safety moon' (setting above must also be true).");
+
+            DaysToRemember = cfg.BindSyncedEntry("_Remember Moons_",
+                "Days to Remember",
+                3,
+                "The number of days that remembered moons will be excluded from the shuffle for.");
 
             IgnoreMoons = cfg.BindSyncedEntry("Lists",
                 "Ignore Moons",
@@ -164,4 +204,3 @@ namespace Selenes_Choice
         }
     }
 }
-
