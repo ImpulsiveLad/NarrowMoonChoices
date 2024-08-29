@@ -50,9 +50,9 @@ namespace Selenes_Choice
             randomFreeLevel.IsRouteHidden = false;
             if (Selenes_Choice.Config.ClearWeather)
             {
-                if (Selenes_Choice.LoadedWR)
+                if (WeatherRegistryCompatibility.enabled)
                 {
-                    WeatherRegistry.WeatherController.ChangeWeather(randomFreeLevel.SelectableLevel, LevelWeatherType.None);
+                    WeatherRegistryCompatibility.ClearWeatherWithWR(randomFreeLevel);
                 }
                 else
                 {

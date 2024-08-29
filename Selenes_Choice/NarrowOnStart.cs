@@ -16,12 +16,6 @@ namespace Selenes_Choice
         public static int glump;
         static void Postfix()
         {
-            if (BepInEx.Bootstrap.Chainloader.PluginInfos.TryGetValue("mrov.WeatherRegistry", out var pluginInfo))
-            {
-                var version = pluginInfo.Metadata.Version;
-                Selenes_Choice.LoadedWR = true;
-                Selenes_Choice.instance.mls.LogInfo($"Detected Weather Registry version {version}, changing weather clearer...");
-            }
             ListProcessor.Instance.ProcessLists();
             if (!NetworkManager.Singleton.IsHost) // someone that isn't host joins
             {
@@ -83,9 +77,9 @@ namespace Selenes_Choice
             randomFreeLevel.IsRouteHidden = false;
             if (Selenes_Choice.Config.ClearWeather)
             {
-                if (Selenes_Choice.LoadedWR)
+                if (WeatherRegistryCompatibility.enabled)
                 {
-                    WeatherRegistry.WeatherController.ChangeWeather( randomFreeLevel.SelectableLevel, LevelWeatherType.None);
+                    WeatherRegistryCompatibility.ClearWeatherWithWR(randomFreeLevel);
                 }
                 else
                 {

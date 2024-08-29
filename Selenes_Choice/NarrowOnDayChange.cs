@@ -48,9 +48,9 @@ namespace Selenes_Choice
             randomFreeLevel.IsRouteHidden = false;
             if (Selenes_Choice.Config.ClearWeather)
             {
-                if (Selenes_Choice.LoadedWR)
+                if (WeatherRegistryCompatibility.enabled)
                 {
-                    WeatherRegistry.WeatherController.ChangeWeather(randomFreeLevel.SelectableLevel, LevelWeatherType.None);
+                    WeatherRegistryCompatibility.ClearWeatherWithWR(randomFreeLevel);
                 }
                 else
                 {
@@ -178,11 +178,10 @@ namespace Selenes_Choice
         {
             if (Selenes_Choice.Config.ClearWeather)
             {
-                if (Selenes_Choice.LoadedWR)
+                if (WeatherRegistryCompatibility.enabled)
                 {
-                    WeatherRegistry.WeatherController.ChangeWeather(Selenes_Choice.PreviousSafetyMoon.SelectableLevel, LevelWeatherType.None);
+                    WeatherRegistryCompatibility.ClearWeatherWithWR(Selenes_Choice.PreviousSafetyMoon);
                 }
-                else
                 {
                     Selenes_Choice.PreviousSafetyMoon.SelectableLevel.currentWeather = LevelWeatherType.None;
                 }

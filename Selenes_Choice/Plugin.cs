@@ -9,15 +9,17 @@ using LethalLevelLoader;
 using static Selenes_Choice.UpdateConfig;
 using System.Reflection;
 using UnityEngine;
+using System.Runtime.CompilerServices;
 
 namespace Selenes_Choice
 {
     [BepInPlugin(modGUID, modName, modVersion)]
+    [BepInDependency("mrov.WeatherRegistry", BepInDependency.DependencyFlags.SoftDependency)]
     public class Selenes_Choice : BaseUnityPlugin
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "2.0.0";
+        private const string modVersion = "2.0.1";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -32,13 +34,13 @@ namespace Selenes_Choice
 
         public new static SyncConfig Config;
 
-        public static bool LoadedWR = false;
-
         void Awake()
         {
             instance = this;
 
             Config = new SyncConfig(base.Config);
+
+            mls = BepInEx.Logging.Logger.CreateLogSource(modGUID);
 
             harmony.PatchAll(typeof(SyncRVM2));
             harmony.PatchAll(typeof(GetLobby));
@@ -70,6 +72,15 @@ namespace Selenes_Choice
                 }
             }
 
+            if (WeatherRegistryCompatibility.enabled)
+            {
+                WeatherRegistryCompatibility.ChangeWeatherClearer();
+            }
+            else
+            {
+                instance.mls.LogInfo($"Weather Registry not detected, using default weather clearer...");
+            }
+
             var types = Assembly.GetExecutingAssembly().GetTypes();
             foreach (var type in types)
             {
@@ -83,8 +94,6 @@ namespace Selenes_Choice
                     }
                 }
             }
-
-            mls = BepInEx.Logging.Logger.CreateLogSource(modGUID);
         }
     }
     [DataContract]
@@ -201,6 +210,33 @@ namespace Selenes_Choice
                 "Max Discount",
                 60,
                 "Maximum percent for a moon to have its price reduced by. Must be more than the min.");
+        }
+    }
+    public static class WeatherRegistryCompatibility
+    {
+        private static bool? _enabled;
+
+        public static bool enabled
+        {
+            get
+            {
+                if (_enabled == null)
+                {
+                    _enabled = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("mrov.WeatherRegistry");
+                }
+                return (bool)_enabled;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void ChangeWeatherClearer()
+        {
+            Selenes_Choice.instance.mls.LogInfo($"Detected Weather Registry, changing weather clearer...");
+        }
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void ClearWeatherWithWR(ExtendedLevel level)
+        {
+            WeatherRegistry.WeatherController.ChangeWeather(level.SelectableLevel, LevelWeatherType.None);
         }
     }
 }
