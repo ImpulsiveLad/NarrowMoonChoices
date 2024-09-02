@@ -19,7 +19,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "2.0.1";
+        private const string modVersion = "2.1.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -56,21 +56,10 @@ namespace Selenes_Choice
             harmony.PatchAll(typeof(ShipleaveCalc));
             harmony.PatchAll(typeof(HUDManagerPatch));
             harmony.PatchAll(typeof(ResetSaveStatusOnDC));
-
-            if (Config.DailyOrQuota == false)
-            {
-                harmony.PatchAll(typeof(HideMoonsOnDayChange));
-            }
-            if (Config.DailyOrQuota)
-            {
-                harmony.PatchAll(typeof(HideMoonsOnNewQuota));
-                harmony.PatchAll(typeof(AutoRouteToCompany));
-
-                if (Config.ClearWeather)
-                {
-                    harmony.PatchAll(typeof(KeepWeather));
-                }
-            }
+            harmony.PatchAll(typeof(HideMoonsOnDayChange));
+            harmony.PatchAll(typeof(HideMoonsOnNewQuota));
+            harmony.PatchAll(typeof(AutoRouteToCompany));
+            harmony.PatchAll(typeof(KeepWeather));
 
             if (WeatherRegistryCompatibility.enabled)
             {
@@ -108,7 +97,7 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<bool> TreasureBool { get; private set; }
         [DataMember] public SyncedEntry<float> TreasureBonus { get; private set; }
         [DataMember] public SyncedEntry<int> PaidMoonCount { get; private set; }
-        [DataMember] public SyncedEntry<bool> PaidMoonRollover { get; private set; }
+        [DataMember] public SyncedEntry<bool> RollOverMoons { get; private set; }
         [DataMember] public SyncedEntry<bool> StoryMoonCompat { get; private set; }
         [DataMember] public SyncedEntry<bool> ClearWeather { get; private set; }
         [DataMember] public SyncedEntry<bool> DiscountMoons { get; private set; }
@@ -117,6 +106,8 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<bool> RememberMoons { get; private set; }
         [DataMember] public SyncedEntry<bool> RememberAll { get; private set; }
         [DataMember] public SyncedEntry<int> DaysToRemember { get; private set; }
+        [DataMember] public SyncedEntry<bool> ReturnMany { get; private set; }
+        [DataMember] public SyncedEntry<bool> ReturnFrees { get; private set; }
         public SyncConfig(ConfigFile cfg) : base("Selenes_Choice")
         {
             ConfigManager.Register(this);
@@ -136,10 +127,10 @@ namespace Selenes_Choice
                 1,
                 "How many additional moons should be added? (These can be free or paid)");
 
-            PaidMoonRollover = cfg.BindSyncedEntry("_General_",
-                "Roll Over Paid Moons",
+            RollOverMoons = cfg.BindSyncedEntry("_General_",
+                "Roll Over Moons",
                 true,
-                "If this is true, when there are no paid moons left, the Paid Moon Count will be added to the Extra Moon Count.");
+                "If this is true and the current number of available free or paid moons do not exceed or reach the Free Moon Count/Paid Moon Count, they will be rolled over into the Random Moon Count.\nFor Example, if you have free/paid/random counts of 5/5/5 but there are only 3 paid moons then it will become 5/3/7 so there are still 15 moons generated.");
 
             DailyOrQuota = cfg.BindSyncedEntry("_General_",
                 "New Moons Only on New Quota",
@@ -165,6 +156,16 @@ namespace Selenes_Choice
                 "Days to Remember",
                 3,
                 "The number of days that remembered moons will be excluded from the shuffle for.");
+
+            ReturnMany = cfg.BindSyncedEntry("_Remember Moons_",
+                "Return Many Moons?",
+                false,
+                "If set to true, instead of 'forgetting' just one random moon when they all become locked by the Remembrance, it will 'forget' all currenly remembered moons (clear the RVM List).");
+
+            ReturnFrees = cfg.BindSyncedEntry("_Remember Moons_",
+                "Only Return Free Moons?",
+                false,
+                "If set to true, instead of waiting for all moons to be 'remembered' before 'forgetting' them, it will 'forget' a random free moon once there are no free moons remaining (or all free moons if this and the above setting are true).");
 
             IgnoreMoons = cfg.BindSyncedEntry("Lists",
                 "Ignore Moons",

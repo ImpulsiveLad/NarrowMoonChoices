@@ -68,45 +68,77 @@ namespace Selenes_Choice
             List<ExtendedLevel> paidLevels = allLevels.Where(level => level.RoutePrice != 0).ToList();
 
             ExtendedLevel randomFreeLevel = null;
+            ExtendedLevel paidsafetylevel = null;
 
             Selenes_Choice.instance.mls.LogInfo("Start Seed " + StartSeed);
             System.Random rand = new System.Random(StartSeed);
 
-            int randomFreeIndex = rand.Next(freeLevels.Count); // gets the one holy "safety moon"
-            randomFreeLevel = freeLevels[randomFreeIndex];
-            randomFreeLevel.IsRouteHidden = false;
-            if (Selenes_Choice.Config.ClearWeather)
+            if (UpdateConfig.freeMoonCount != 0)
             {
-                if (WeatherRegistryCompatibility.enabled)
+                int randomFreeIndex = rand.Next(freeLevels.Count); // gets the one holy "safety moon"
+                randomFreeLevel = freeLevels[randomFreeIndex];
+                randomFreeLevel.IsRouteHidden = false;
+                if (Selenes_Choice.Config.ClearWeather)
                 {
-                    WeatherRegistryCompatibility.ClearWeatherWithWR(randomFreeLevel);
+                    if (WeatherRegistryCompatibility.enabled)
+                    {
+                        WeatherRegistryCompatibility.ClearWeatherWithWR(randomFreeLevel);
+                    }
+                    else
+                    {
+                        randomFreeLevel.SelectableLevel.currentWeather = LevelWeatherType.None;
+                    }
                 }
-                else
+                freeLevels.Remove(randomFreeLevel);
+                allLevels.Remove(randomFreeLevel);
+                if (Selenes_Choice.Config.RememberMoons)
                 {
-                    randomFreeLevel.SelectableLevel.currentWeather = LevelWeatherType.None;
+                    UpdateConfig.RecentlyVisitedMoons.Add(randomFreeLevel);
+                }
+                Selenes_Choice.PreviousSafetyMoon = randomFreeLevel;
+
+                Selenes_Choice.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
+
+                for (int i = 0; i < (UpdateConfig.freeMoonCount - 1); i++) // gets other free moons
+                {
+                    int randomExtraFreeIndex = rand.Next(freeLevels.Count);
+                    ExtendedLevel additionalFreeLevels = freeLevels[randomExtraFreeIndex];
+                    additionalFreeLevels.IsRouteHidden = false;
+                    freeLevels.Remove(additionalFreeLevels);
+                    allLevels.Remove(additionalFreeLevels);
+                    if (Selenes_Choice.Config.RememberMoons && Selenes_Choice.Config.RememberAll)
+                    {
+                        UpdateConfig.RecentlyVisitedMoons.Add(additionalFreeLevels);
+                    }
                 }
             }
-            freeLevels.Remove(randomFreeLevel);
-            allLevels.Remove(randomFreeLevel);
-            if (Selenes_Choice.Config.RememberMoons)
+            else
             {
-                UpdateConfig.RecentlyVisitedMoons.Add(randomFreeLevel);
-            }
-            Selenes_Choice.PreviousSafetyMoon = randomFreeLevel;
-
-            Selenes_Choice.instance.mls.LogInfo("Safety Moon: " + randomFreeLevel.SelectableLevel.PlanetName);
-
-            for (int i = 0; i < (UpdateConfig.freeMoonCount - 1); i++) // gets other free moons
-            {
-                int randomExtraFreeIndex = rand.Next(freeLevels.Count);
-                ExtendedLevel additionalFreeLevels = freeLevels[randomExtraFreeIndex];
-                additionalFreeLevels.IsRouteHidden = false;
-                freeLevels.Remove(additionalFreeLevels);
-                allLevels.Remove(additionalFreeLevels);
-                if (Selenes_Choice.Config.RememberMoons && Selenes_Choice.Config.RememberAll)
+                int paidsafetyindex = rand.Next(paidLevels.Count);
+                paidsafetylevel = paidLevels[paidsafetyindex];
+                paidsafetylevel.IsRouteHidden = false;
+                if (Selenes_Choice.Config.ClearWeather)
                 {
-                    UpdateConfig.RecentlyVisitedMoons.Add(additionalFreeLevels);
+                    if (WeatherRegistryCompatibility.enabled)
+                    {
+                        WeatherRegistryCompatibility.ClearWeatherWithWR(randomFreeLevel);
+                    }
+                    else
+                    {
+                        paidsafetylevel.SelectableLevel.currentWeather = LevelWeatherType.None;
+                    }
                 }
+                allLevels.Remove(paidsafetylevel);
+                paidLevels.Remove(paidsafetylevel);
+                if (Selenes_Choice.Config.RememberMoons)
+                {
+                    UpdateConfig.RecentlyVisitedMoons.Add(paidsafetylevel);
+                }
+                Selenes_Choice.PreviousSafetyMoon = paidsafetylevel;
+
+                Selenes_Choice.instance.mls.LogInfo("Safety Moon: " + paidsafetylevel.SelectableLevel.PlanetName);
+
+                UpdateConfig.paidMoonCount -= 1;
             }
 
             if (UpdateConfig.paidMoonCount != 0)
@@ -168,7 +200,7 @@ namespace Selenes_Choice
                 }
             }
 
-            if (TimeOfDay.Instance.daysUntilDeadline == 0 && NetworkManager.Singleton.IsHost)
+            if (TimeOfDay.Instance.daysUntilDeadline == 0)
             {
                 ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
 
@@ -190,11 +222,11 @@ namespace Selenes_Choice
                     DaysSpent = 0;
                 }
                 Selenes_Choice.instance.mls.LogInfo("Days Spent: " + DaysSpent);
-                if (randomFreeLevel != null && randomFreeLevel != LevelManager.CurrentExtendedLevel && DaysSpent == 0 && NetworkManager.Singleton.IsHost)
+                if (Selenes_Choice.PreviousSafetyMoon != null && Selenes_Choice.PreviousSafetyMoon != LevelManager.CurrentExtendedLevel && DaysSpent == 0 && NetworkManager.Singleton.IsHost)
                 {
-                    int randomFreeLevelId = randomFreeLevel.SelectableLevel.levelID;
+                    int PreviousSafetyMoonID = Selenes_Choice.PreviousSafetyMoon.SelectableLevel.levelID;
 
-                    StartOfRound.Instance.ChangeLevelServerRpc(randomFreeLevelId, Object.FindObjectOfType<Terminal>().groupCredits);
+                    StartOfRound.Instance.ChangeLevelServerRpc(PreviousSafetyMoonID, Object.FindObjectOfType<Terminal>().groupCredits);
                 }
             }
             ES3.Save("CurrentPlanetID", StartOfRound.Instance.currentLevelID, GameNetworkManager.Instance.currentSaveFileName);

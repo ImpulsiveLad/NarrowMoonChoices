@@ -346,33 +346,124 @@ namespace Selenes_Choice
             List<ExtendedLevel> allLevels = Levels.Where(level => !RecentlyVisitedMoons.Contains(level)).ToList(); // every level available to the shuffle
 
             List<ExtendedLevel> freeLevels = allLevels.Where(level => level.RoutePrice == 0).ToList(); // free levels that can be shuffled
-            if (freeLevels.Count <= 0) // this loop repopulates the free levels when there are none left to be the 'safety moon' (they were all locked by RVM)
+            List<ExtendedLevel> FreeRVMs = RecentlyVisitedMoons.Where(level => level.RoutePrice == 0).ToList();
+
+            if (Selenes_Choice.Config.ReturnFrees && FreeRVMs.Count != 0)
             {
-                string AddedLevels = "No Free Moons were found, reusing RV free moon(s): ";
-                foreach (ExtendedLevel level in RecentlyVisitedMoons)
+                if (Selenes_Choice.Config.ReturnMany)
                 {
-                    if (level.RoutePrice == 0)
+                    if (freeLevels.Count <= 0) // this loop repopulates the free levels when there are none left to be the 'safety moon' (they were all locked by RVM)
                     {
-                        freeLevels.Add(level);
-                        allLevels.Add(level);
-                        levelsToRemove.Add(level);
-                        AddedLevels += level.NumberlessPlanetName + ", ";
+                        string AddedLevels = "No Free Moons were found, reusing RV free moon(s): ";
+
+                        foreach (ExtendedLevel level in FreeRVMs)
+                        {
+                            freeLevels.Add(level);
+                            allLevels.Add(level);
+                            levelsToRemove.Add(level);
+                            AddedLevels += level.NumberlessPlanetName + ", ";
+                        }
+                        if (AddedLevels.Contains(",") && AddedLevels.LastIndexOf(", ") == (AddedLevels.Length - 2))
+                        {
+                            AddedLevels = AddedLevels.Remove(AddedLevels.LastIndexOf(", "), 2);
+                            AddedLevels += ".";
+                        }
+                        Selenes_Choice.instance.mls.LogInfo(AddedLevels);
+                        foreach (ExtendedLevel level in levelsToRemove) // SHRED THAT SHIT BBY GRRL
+                        {
+                            RecentlyVisitedMoons.Remove(level);
+                            DaysOnRecentlyVisitedList.Remove(level);
+                            RVMString.Remove(level.NumberlessPlanetName);
+                            DRVString.Remove(level.NumberlessPlanetName);
+                        }
+                        levelsToRemove.Clear();
                     }
                 }
-                if (AddedLevels.Contains(",") && AddedLevels.LastIndexOf(", ") == (AddedLevels.Length - 2))
+                else
                 {
-                    AddedLevels = AddedLevels.Remove(AddedLevels.LastIndexOf(", "), 2);
-                    AddedLevels += ".";
+                    if (freeLevels.Count <= 0)
+                    {
+                        string AddedLevel = "No Free Moons were found, reusing one RV free moon: ";
+                        List<ExtendedLevel> eligibleLevels = new List<ExtendedLevel>();
+
+                        foreach (ExtendedLevel level in RecentlyVisitedMoons)
+                        {
+                            if (level.RoutePrice == 0)
+                            {
+                                eligibleLevels.Add(level);
+                            }
+                        }
+                        System.Random rand = new System.Random(StartOfRound.Instance.randomMapSeed);
+                        ExtendedLevel selectedLevel = eligibleLevels[rand.Next(eligibleLevels.Count)];
+
+                        freeLevels.Add(selectedLevel);
+                        allLevels.Add(selectedLevel);
+                        AddedLevel += selectedLevel.NumberlessPlanetName + ".";
+
+                        Selenes_Choice.instance.mls.LogInfo(AddedLevel);
+
+                        RecentlyVisitedMoons.Remove(selectedLevel);
+                        DaysOnRecentlyVisitedList.Remove(selectedLevel);
+                        RVMString.Remove(selectedLevel.NumberlessPlanetName);
+                        DRVString.Remove(selectedLevel.NumberlessPlanetName);
+                    }
                 }
-                Selenes_Choice.instance.mls.LogInfo(AddedLevels);
-                foreach (ExtendedLevel level in levelsToRemove) // SHRED THAT SHIT BBY GRRL
+            }
+            else
+            {
+                if (Selenes_Choice.Config.ReturnMany)
                 {
-                    RecentlyVisitedMoons.Remove(level);
-                    DaysOnRecentlyVisitedList.Remove(level);
-                    RVMString.Remove(level.NumberlessPlanetName);
-                    DRVString.Remove(level.NumberlessPlanetName);
+                    if (allLevels.Count <= 0)
+                    {
+                        string AddedLevels = "No Moons were found, reusing RV moons: ";
+
+                        foreach (ExtendedLevel level in RecentlyVisitedMoons)
+                        {
+                            allLevels.Add(level);
+                            levelsToRemove.Add(level);
+                            AddedLevels += level.NumberlessPlanetName + ", ";
+                        }
+                        if (AddedLevels.Contains(",") && AddedLevels.LastIndexOf(", ") == (AddedLevels.Length - 2))
+                        {
+                            AddedLevels = AddedLevels.Remove(AddedLevels.LastIndexOf(", "), 2);
+                            AddedLevels += ".";
+                        }
+                        Selenes_Choice.instance.mls.LogInfo(AddedLevels);
+                        foreach (ExtendedLevel level in levelsToRemove) // SHRED THAT SHIT BBY GRRL
+                        {
+                            RecentlyVisitedMoons.Remove(level);
+                            DaysOnRecentlyVisitedList.Remove(level);
+                            RVMString.Remove(level.NumberlessPlanetName);
+                            DRVString.Remove(level.NumberlessPlanetName);
+                        }
+                        levelsToRemove.Clear();
+                    }
                 }
-                levelsToRemove.Clear();
+                else
+                {
+                    if (allLevels.Count <= 0)
+                    {
+                        string AddedLevel = "No Moons were found, reusing one RV moon: ";
+                        List<ExtendedLevel> eligibleLevels = new List<ExtendedLevel>();
+
+                        foreach (ExtendedLevel level in RecentlyVisitedMoons)
+                        {
+                            eligibleLevels.Add(level);
+                        }
+                        System.Random rand = new System.Random(StartOfRound.Instance.randomMapSeed);
+                        ExtendedLevel selectedLevel = eligibleLevels[rand.Next(eligibleLevels.Count)];
+
+                        allLevels.Add(selectedLevel);
+                        AddedLevel += selectedLevel.NumberlessPlanetName + ".";
+
+                        Selenes_Choice.instance.mls.LogInfo(AddedLevel);
+
+                        RecentlyVisitedMoons.Remove(selectedLevel);
+                        DaysOnRecentlyVisitedList.Remove(selectedLevel);
+                        RVMString.Remove(selectedLevel.NumberlessPlanetName);
+                        DRVString.Remove(selectedLevel.NumberlessPlanetName);
+                    }
+                }
             }
 
             foreach (ExtendedLevel level in RecentlyVisitedMoons)
@@ -400,18 +491,22 @@ namespace Selenes_Choice
             int oldPaidMoonCount = paidMoonCount;
             int oldRandomMoonCount = randomMoonCount;
 
-            if (paidLevels.Count == 0 && Selenes_Choice.Config.PaidMoonRollover) // this and the else reset the randomMoonCount when it gets reduced (due to moons being removed by RVMs)
+            freeMoonCount = Selenes_Choice.Config.FreeMoonCount;
+            paidMoonCount = Selenes_Choice.Config.PaidMoonCount;
+            randomMoonCount = Selenes_Choice.Config.RandomMoonCount;
+
+            if (freeLevels.Count < Selenes_Choice.Config.FreeMoonCount && Selenes_Choice.Config.RollOverMoons)
             {
-                randomMoonCount = Selenes_Choice.Config.RandomMoonCount + Selenes_Choice.Config.PaidMoonCount;
+                randomMoonCount += Selenes_Choice.Config.FreeMoonCount - freeLevels.Count;
             }
-            else
+            if (paidLevels.Count < Selenes_Choice.Config.PaidMoonCount && Selenes_Choice.Config.RollOverMoons)
             {
-                randomMoonCount = Selenes_Choice.Config.RandomMoonCount;
+                randomMoonCount += Selenes_Choice.Config.PaidMoonCount - paidLevels.Count;
             }
 
-            if (freeMoonCount < 1) // there must be at least one(1) free moon in the modpack or help me god
+            if (freeMoonCount < 0)
             {
-                freeMoonCount = 1;
+                freeMoonCount = 0;
             }
             if (freeMoonCount > freeLevels.Count)
             {
