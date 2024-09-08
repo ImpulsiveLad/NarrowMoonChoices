@@ -19,7 +19,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "2.1.0";
+        private const string modVersion = "2.2.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -28,9 +28,9 @@ namespace Selenes_Choice
 
         public static int LastUsedSeed;
 
-        public static ExtendedLevel PreviousSafetyMoon;
+        public static int glump;
 
-        public static EndOfGameStats stats = new EndOfGameStats();
+        public static ExtendedLevel PreviousSafetyMoon;
 
         public new static SyncConfig Config;
 
@@ -50,7 +50,7 @@ namespace Selenes_Choice
             harmony.PatchAll(typeof(ListProcessor));
             harmony.PatchAll(typeof(UpdateConfig));
             harmony.PatchAll(typeof(HideMoonsOnStart));
-            harmony.PatchAll(typeof(IncrementDaysSpent));
+            harmony.PatchAll(typeof(MarkAsSaved));
             harmony.PatchAll(typeof(HideMoonsOnGameOver));
             harmony.PatchAll(typeof(GlobalVariables));
             harmony.PatchAll(typeof(ShipleaveCalc));
