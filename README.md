@@ -2,44 +2,54 @@
 
 Selene is the Greek Goddess of the moon.
 
-## Selene's Choice keeps every run unique while also making the game more difficult
+# *Let her guide your crew*
 
-This is achieved by shuffling around the moons and only providing the crew with a free moon, paid moon, and a random one. (The # of each type to generate is configurable)
+Selene's Choice is a Lethal Company mod oriented around unpredictability and inadvertent difficulty.
 
-The ship will route to the first free moon it picks automatically.
+This is achieved by shuffling moons and only providing the crew access to a limited array of moons. All other moons will be hidden and locked.
 
-All moons that were not picked by the shuffle will be hidden from the terminal and have their routes locked until the next shuffle.
+The ship auto-routes to one of these moons automatically. If the quota is due, the ship auto-routes to the company instead.
 
-## Shuffling Occurs when...
+The shuffle can either occur every day or only after a quota has been passed based on a setting. (default: daily)
 
-**A new lobby is opened** (The shuffle seed is based on the lobbyID)
+# Valid Moons
 
-**The crew is ejected** (The shuffle seed is the lobbyID plus the number of times the crew has been ejected)
+The config allows you to choose how many moons to select based on their route price:
 
-Then either...
+- **Free**: Route price of 0. (default: 1)
+- **Paid**: Route price of more than 0. (default: 1)
+- **Extra**: Any route price. (default: 1)
+- **Rare**: Route price higher than a configurable threshold value. (default: 0, threshold of 650c)
 
-**Everyday** (The shuffle seed will be the previous level's seed)
+If there aren't enough moons in a category to meet the requested count, the remaining count can roll over into the extra moons category. (default: true)
 
-Or...
+# Other Settings
 
-**On a new Quota** (The shuffle will be the lobbyID plus the new quota amount)
+- Should the auto-route moon always have clear weather? (default: false)
+  - This works with WeatherRegistry as well.
 
-By default the shuffle will occur daily, this can be configured.
+- Should the shuffle exclude moons that were recently selected? (default: true)
+  - Should it only remember the auto-route moon or all moons in the shuffle? (default: only auto-route moon)
+  - How many days should the shuffle exclude these moons for? (default: 3 days)
+  - If there are no valid moons left, should it return just one or all? (default: just one moon)
+  - Should it start returning moons when there are no free moons left or not return moons until all moons are unavailable? (default: when no moons are available)
 
-Moons that are recently selected by the shuffle will be excluded for a few days.
-Default is only the 'safety moon' and for 3 days, it can also temp block all moons from the shuffle and the # of days to hold them is configurable. (Feature can be disabled alltogether as well as some other config settings for it)
+- Discount for selected moons. The minimum and maximum price reduction percent are configurable. (default: false, 40-60% discount)
 
-You are also able to create an Ignorelist, Blacklist and Treasurelist. All are exempt from the shuffle but:
-- Ignored moons are will always be visible and unlocked.
-- Blacklisted moons will always be invisible and locked.
-- Treasured moons will always be invisible but unlocked, there is config to make them give extra scrap if desired.
-- You can choose whether the secret unlockable Rosie's moon are to be untouched or not.
+# Moon Lists
 
-Additional config options include for the guaranteed free moon to always have clear weather, a discount on selected moons' route prices (min/max configurable), and rolling over the paid moon count to the random count when there are no paid moons left (default:true).
+- **Ignore List**: Always available and excluded from the shuffle. (default: Gordion)
+- **Blacklist**: Always locked, hidden, and excluded from the shuffle. (default: Liquidation)
+- **Treasure List**: Always available but hidden, excluded from the shuffle. (default: Embrion)
+  - Multiplier for the scrap count on Treasure Moons. (default: 1.25 times more scrap)
 
-## This mod is **highly** dependent on LLL's functions and moon properties so any moons that don't use LLL will most likely not work with this mod.
+## Notes
 
 All players require the mod.
+
+This mod is *highly* dependent on LethalLeveLoader functions and moon properties so any moons that are not implemented using LLL will most likely not work with this mod.
+
+Csync should sync everyone's config settings to the host, any other important data is sent via named message.
 
 If you find any bugs it will be faster to tell me on discord tbh.
 
