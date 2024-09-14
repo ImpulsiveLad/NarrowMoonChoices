@@ -20,8 +20,7 @@ namespace Selenes_Choice
         }
         static void ProcessData()
         {
-            int ResettedSeed = (ResetShipPatch.TimesCalled * 1111) + GetLobby.GrabbedLobby; // Uses the LobbyID + the amount of failed quotas
-            CommonShuffle.ShuffleMoons(ResettedSeed);
+            CommonShuffle.ShuffleMoons(StartOfRound.Instance.randomMapSeed);
 
             if (TimeOfDay.Instance.daysUntilDeadline == 0)
             {

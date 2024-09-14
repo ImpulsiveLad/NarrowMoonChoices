@@ -29,7 +29,7 @@ namespace Selenes_Choice
                 }
                 else // New save file
                 {
-                    StartSeed = GetLobby.GrabbedLobby; // Intial seed is the last digits of the lobby code
+                    StartSeed = Random.Range(1, 100000000);
                 }
                 ShareSnT.Instance.StartCoroutine(WaitOnStart());
             }

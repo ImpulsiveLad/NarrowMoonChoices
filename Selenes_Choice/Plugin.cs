@@ -19,7 +19,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "2.2.0";
+        private const string modVersion = "2.3.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -42,9 +42,6 @@ namespace Selenes_Choice
 
             mls = BepInEx.Logging.Logger.CreateLogSource(modGUID);
 
-            harmony.PatchAll(typeof(SyncRVM2));
-            harmony.PatchAll(typeof(GetLobby));
-            harmony.PatchAll(typeof(ResetShipPatch));
             harmony.PatchAll(typeof(ShareSnT));
             harmony.PatchAll(typeof(AnchorTheShare));
             harmony.PatchAll(typeof(ListProcessor));
@@ -108,6 +105,8 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<int> DaysToRemember { get; private set; }
         [DataMember] public SyncedEntry<bool> ReturnMany { get; private set; }
         [DataMember] public SyncedEntry<bool> ReturnFrees { get; private set; }
+        [DataMember] public SyncedEntry<int> ValueThreshold { get; private set; }
+        [DataMember] public SyncedEntry<int> RareMoonCount { get; private set; }
         public SyncConfig(ConfigFile cfg) : base("Selenes_Choice")
         {
             ConfigManager.Register(this);
@@ -125,7 +124,17 @@ namespace Selenes_Choice
             RandomMoonCount = cfg.BindSyncedEntry("_General_",
                 "Extra Moon Count",
                 1,
-                "How many additional moons should be added? (These can be free or paid)");
+                "How many additional moons should be included? (These can be free or paid)");
+
+            RareMoonCount = cfg.BindSyncedEntry("_General_",
+                "Rare Moon Count",
+                0,
+                "How many paid moons above the threshold value below should be included?");
+
+            ValueThreshold = cfg.BindSyncedEntry("_General_",
+                "Rare Moon Threshold",
+                650,
+                "Moons equal or higher than this value will be used for the Rare Moon Count.");
 
             RollOverMoons = cfg.BindSyncedEntry("_General_",
                 "Roll Over Moons",
@@ -179,7 +188,7 @@ namespace Selenes_Choice
 
             TreasureMoons = cfg.BindSyncedEntry("Lists",
                 "Treasure(?) Moons",
-                "StarlancerZero,Cosmocos",
+                "Embrion,StarlancerZero,Cosmocos",
                 "Any moons listed here will remain hidden but still be routable (if you know the routing key *winky face*) Just as the other two lists, these are not in the shuffle. The config section below allows you to make them be 'Treasure Moons.' Moon names must be spelled exactly and correctly. For example, ‘Experimentation,Assurance,Vow’ would be counted, but ‘Experimentatio’ would not. (This is to avoid moon name mix-ups)");
 
             TreasureBool = cfg.BindSyncedEntry("Treasure",

@@ -24,8 +24,7 @@ namespace Selenes_Choice
                 return;
             }
 
-            int NewQuotaSeed = TimeOfDay.Instance.profitQuota + GetLobby.GrabbedLobby; // The random moons after getting a new quota will be the new quota and the lobbyID
-            CommonShuffle.ShuffleMoons(NewQuotaSeed);
+            CommonShuffle.ShuffleMoons(StartOfRound.Instance.randomMapSeed);
 
             if (Selenes_Choice.PreviousSafetyMoon != null && Selenes_Choice.PreviousSafetyMoon != LevelManager.CurrentExtendedLevel)
             {

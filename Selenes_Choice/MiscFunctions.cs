@@ -1,6 +1,4 @@
 ﻿using HarmonyLib;
-using Steamworks;
-using Steamworks.Data;
 using System.Linq;
 using UnityEngine;
 using Unity.Collections;
@@ -11,39 +9,12 @@ using System.Threading;
 
 namespace Selenes_Choice
 {
-    [HarmonyPatch(typeof(Lobby), "get_Id")]
-    public static class GetLobby
-    {
-        public static int GrabbedLobby;
-        public static int LastLoggedLobby;
-        static void Postfix(Lobby __instance, ref SteamId __result)
-        {
-            ulong LobbyID = __result.Value;
-
-            GrabbedLobby = (int)(LobbyID % 1000000000); // Takes only the last 9 digits of the LobbyID
-
-            if (GrabbedLobby != LastLoggedLobby)
-            {
-                Selenes_Choice.instance.mls.LogInfo("LobbyID: " + GrabbedLobby);
-                LastLoggedLobby = GrabbedLobby;
-            }
-        }
-    }
-    [HarmonyPatch(typeof(StartOfRound), "ResetShip")]
-    public static class ResetShipPatch
-    {
-        public static int TimesCalled = 0;
-        static void Postfix()
-        {
-            TimesCalled++; // Counts times the ship is reset (basically game overs)
-        }
-    }
     public class ShareSnT : NetworkBehaviour // this is all just to transmit 2 variables to late players
     {
         public static ShareSnT Instance { get; private set; }
 
         public int lastUsedSeedPrev;
-        public int timesCalledPrev;
+
         public ManualResetEvent dataReceivedEvent = new ManualResetEvent(false);
 
         private void Awake()
@@ -64,10 +35,14 @@ namespace Selenes_Choice
         }
         public void UpdateAndSendData()
         {
-            using (var writer = new FastBufferWriter(12, Allocator.Temp))
+            using (var writer = new FastBufferWriter(1024, Allocator.Temp))
             {
+                SerializableList serializableRVMString = new SerializableList { RVMString = UpdateConfig.RVMString };
+                SerializableDictionary serializableDRVString = new SerializableDictionary { DRVString = UpdateConfig.DRVString };
+
                 writer.WriteValueSafe(lastUsedSeedPrev);
-                writer.WriteValueSafe(timesCalledPrev);
+                writer.WriteValueSafe(serializableRVMString);
+                writer.WriteValueSafe(serializableDRVString);
 
                 NetworkManager.CustomMessagingManager.SendNamedMessage(MessageName, NetworkManager.ConnectedClientsIds, writer);
             }
@@ -77,7 +52,6 @@ namespace Selenes_Choice
             if (NetworkManager.Singleton.IsHost && clientId != NetworkManager.ServerClientId)
             {
                 lastUsedSeedPrev = Selenes_Choice.LastUsedSeed;
-                timesCalledPrev = ResetShipPatch.TimesCalled;
                 dataReceivedEvent.Set();
 
                 UpdateAndSendData();
@@ -86,9 +60,16 @@ namespace Selenes_Choice
             else if (!NetworkManager.Singleton.IsHost)
             {
                 reader.ReadValue(out int lastUsedSeedPrev);
-                reader.ReadValue(out int timesCalledPrev);
                 Selenes_Choice.LastUsedSeed = lastUsedSeedPrev;
-                ResetShipPatch.TimesCalled = timesCalledPrev;
+
+                SerializableList serializableRVMString;
+                SerializableDictionary serializableDRVString;
+
+                reader.ReadValueSafe(out serializableRVMString);
+                reader.ReadValueSafe(out serializableDRVString);
+
+                UpdateConfig.RVMString = serializableRVMString.RVMString;
+                UpdateConfig.DRVString = serializableDRVString.DRVString;
                 dataReceivedEvent.Set();
                 Selenes_Choice.instance.mls.LogInfo("Client received message");
             }
@@ -97,14 +78,77 @@ namespace Selenes_Choice
         {
             if (NetworkManager.Singleton.IsHost)
             {
-                if (Selenes_Choice.LastUsedSeed != lastUsedSeedPrev || ResetShipPatch.TimesCalled != timesCalledPrev)
+                if (Selenes_Choice.LastUsedSeed != lastUsedSeedPrev)
                 {
                     UpdateAndSendData();
 
                     lastUsedSeedPrev = Selenes_Choice.LastUsedSeed;
-                    timesCalledPrev = ResetShipPatch.TimesCalled;
                     Selenes_Choice.instance.mls.LogInfo("Host has saved new seed, " + lastUsedSeedPrev);
-                    Selenes_Choice.instance.mls.LogInfo("Host has saved new ejection, " + timesCalledPrev);
+                }
+            }
+        }
+        [System.Serializable]
+        public class SerializableList : INetworkSerializable
+        {
+            public List<string> RVMString = new List<string>();
+
+            public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+            {
+                int count = RVMString.Count;
+                serializer.SerializeValue(ref count);
+
+                if (serializer.IsReader)
+                {
+                    RVMString = new List<string>(count);
+                }
+
+                for (int i = 0; i < count; i++)
+                {
+                    string value = i < RVMString.Count ? RVMString[i] : string.Empty;
+                    serializer.SerializeValue(ref value);
+                    if (serializer.IsReader)
+                    {
+                        if (i < RVMString.Count)
+                        {
+                            RVMString[i] = value;
+                        }
+                        else
+                        {
+                            RVMString.Add(value);
+                        }
+                    }
+                }
+            }
+        }
+        [System.Serializable]
+        public class SerializableDictionary : INetworkSerializable
+        {
+            public Dictionary<string, int> DRVString = new Dictionary<string, int>();
+
+            public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+            {
+                int count = DRVString.Count;
+                serializer.SerializeValue(ref count);
+
+                if (serializer.IsReader)
+                {
+                    DRVString = new Dictionary<string, int>(count);
+                }
+
+                List<string> keys = new List<string>(DRVString.Keys);
+                List<int> values = new List<int>(DRVString.Values);
+
+                for (int i = 0; i < count; i++)
+                {
+                    string key = i < keys.Count ? keys[i] : string.Empty;
+                    int value = i < values.Count ? values[i] : 0;
+                    serializer.SerializeValue(ref key);
+                    serializer.SerializeValue(ref value);
+
+                    if (serializer.IsReader)
+                    {
+                        DRVString[key] = value;
+                    }
                 }
             }
         }
@@ -127,6 +171,7 @@ namespace Selenes_Choice
         public static int freeMoonCount = Selenes_Choice.Config.FreeMoonCount;
         public static int paidMoonCount = Selenes_Choice.Config.PaidMoonCount;
         public static int randomMoonCount = Selenes_Choice.Config.RandomMoonCount;
+        public static int rareMoonCount = Selenes_Choice.Config.RareMoonCount;
 
         public static int minDiscount = Selenes_Choice.Config.MinDiscount;
         public static int maxDiscount = Selenes_Choice.Config.MaxDiscount; // all these 5 above are there to dynamically bracket data safely without touching the config values
@@ -486,47 +531,70 @@ namespace Selenes_Choice
 
             List<ExtendedLevel> paidLevels = allLevels.Where(level => level.RoutePrice != 0).ToList(); // levels that aren't free
             Selenes_Choice.instance.mls.LogInfo("paid levels " + paidLevels.Count);
+            List<ExtendedLevel> rareLevels = paidLevels.Where(level => level.RoutePrice >= Selenes_Choice.Config.ValueThreshold).ToList(); // Threshold value determines rare moons
+            Selenes_Choice.instance.mls.LogInfo("rare levels " + rareLevels.Count);
 
             int oldFreeMoonCount = freeMoonCount;
             int oldPaidMoonCount = paidMoonCount;
             int oldRandomMoonCount = randomMoonCount;
+            int oldRareMoonCount = rareMoonCount;
 
             freeMoonCount = Selenes_Choice.Config.FreeMoonCount;
-            paidMoonCount = Selenes_Choice.Config.PaidMoonCount;
-            randomMoonCount = Selenes_Choice.Config.RandomMoonCount;
-
-            if (freeLevels.Count < Selenes_Choice.Config.FreeMoonCount && Selenes_Choice.Config.RollOverMoons)
-            {
-                randomMoonCount += Selenes_Choice.Config.FreeMoonCount - freeLevels.Count;
-            }
-            if (paidLevels.Count < Selenes_Choice.Config.PaidMoonCount && Selenes_Choice.Config.RollOverMoons)
-            {
-                randomMoonCount += Selenes_Choice.Config.PaidMoonCount - paidLevels.Count;
-            }
-
             if (freeMoonCount < 0)
             {
                 freeMoonCount = 0;
             }
-            if (freeMoonCount > freeLevels.Count)
+            rareMoonCount = Selenes_Choice.Config.RareMoonCount;
+            if (rareMoonCount < 0)
             {
-                freeMoonCount = freeLevels.Count;
+                rareMoonCount = 0;
             }
+            paidMoonCount = Selenes_Choice.Config.PaidMoonCount;
             if (paidMoonCount < 0)
             {
                 paidMoonCount = 0;
             }
-            if (paidMoonCount > paidLevels.Count)
-            {
-                paidMoonCount = paidLevels.Count;
-            }
+            randomMoonCount = Selenes_Choice.Config.RandomMoonCount;
             if (randomMoonCount < 0)
             {
                 randomMoonCount = 0;
             }
-            if (randomMoonCount > (allLevels.Count - freeMoonCount) - paidMoonCount)
+
+            int MoonsToSpawn = freeMoonCount + paidMoonCount + randomMoonCount + rareMoonCount; // MoonsToSpawn is the total "called for" moons after removing negatives
+            if (MoonsToSpawn == 0)
             {
-                randomMoonCount = (allLevels.Count - freeMoonCount) - paidMoonCount;
+                freeMoonCount = 1;
+            }
+            int RandomMax = allLevels.Count - MoonsToSpawn; // RandomMax is the max count of Random as 
+            if (RandomMax < 0)
+            {
+                MoonsToSpawn = allLevels.Count; // loop keeps RandomMax out of the negatives and caps out the MoonsToSpawn by how many levels are in the shuffle
+                RandomMax = 0;
+            }
+
+            if (freeMoonCount > freeLevels.Count) // only free moons can be free
+            {
+                freeMoonCount = freeLevels.Count;
+            }
+            MoonsToSpawn -= freeMoonCount; // account for free moons
+            if (rareMoonCount > rareLevels.Count) // only moons above the threshold can be rare
+            {
+                rareMoonCount = rareLevels.Count;
+            }
+            MoonsToSpawn -= rareMoonCount; // account for rare moons
+            if (paidMoonCount > paidLevels.Count - rareMoonCount) // account for paid moons that are already being picked as rare moons
+            {
+                paidMoonCount = paidLevels.Count - rareMoonCount;
+            }
+            MoonsToSpawn -= paidMoonCount; // account for paid moons
+            if (randomMoonCount > RandomMax) // uses random max here
+            {
+                randomMoonCount = RandomMax;
+            }
+            MoonsToSpawn -= randomMoonCount; // account for random moons
+            if (MoonsToSpawn > 0 && Selenes_Choice.Config.RollOverMoons) // easy math to get the total "called for" moons to be rolled to random moons if its on and the MoonsToSpawn wasn't more than the # of moons
+            {
+                randomMoonCount += MoonsToSpawn; // at this point the MoonsToSpawn will have been decreased so that if none of the above moons hit their max it will be exactly 0 (AllLevels.Count(or less) - (freeMoonCount + paidMoonCount + randomMoonCount + rareMoonCount))
             }
 
             if (oldFreeMoonCount != freeMoonCount)
@@ -536,6 +604,10 @@ namespace Selenes_Choice
             if (oldPaidMoonCount != paidMoonCount)
             {
                 Selenes_Choice.instance.mls.LogInfo("paidMoonCount changed from " + oldPaidMoonCount + " to " + paidMoonCount);
+            }
+            if (oldRareMoonCount != rareMoonCount)
+            {
+                Selenes_Choice.instance.mls.LogInfo("rareMoonCount changed from " + oldRareMoonCount + " to " + rareMoonCount);
             }
             if (oldRandomMoonCount != randomMoonCount)
             {
@@ -552,7 +624,7 @@ namespace Selenes_Choice
             {
                 Selenes_Choice.instance.mls.LogInfo("minDiscount changed from " + oldminDiscount + " to " + minDiscount);
             }
-            if (oldminDiscount != maxDiscount)
+            if (oldmaxDiscount != maxDiscount)
             {
                 Selenes_Choice.instance.mls.LogInfo("maxDiscount changed from " + oldmaxDiscount + " to " + maxDiscount);
             }
@@ -572,55 +644,6 @@ namespace Selenes_Choice
                 DRVString.Clear();
                 levelsToRemove.Clear();
                 ListStatus.Clear();
-            }
-        }
-    }
-    public class SyncRVM
-    {
-        private static readonly SyncRVM _instance = new SyncRVM();
-        private SyncRVM() { }
-
-        public static SyncRVM Instance
-        {
-            get
-            {
-                return _instance;
-            }
-        }
-        [ClientRpc]
-        public void SendSavedDataClientRpc(List<string> rvmString, Dictionary<string, int> drvString)
-        {
-            if (!NetworkManager.Singleton.IsHost && UpdateConfig.RVMString.Count == 0 && UpdateConfig.DRVString.Count == 0)
-            {
-                UpdateConfig.RVMString = rvmString;
-                UpdateConfig.DRVString = drvString;
-                Selenes_Choice.instance.mls.LogInfo("Received RVM data from host.");
-            }
-            else
-            {
-                Selenes_Choice.instance.mls.LogInfo("Data is up to date.");
-            }
-        }
-        public void SyncDataWithClient()
-        {
-            if (NetworkManager.Singleton.IsHost)
-            {
-                List<string> rvmString = ES3.Load<List<string>>("RecentlyVisitedMoonsList", GameNetworkManager.Instance.currentSaveFileName);
-                Dictionary<string, int> drvString = ES3.Load<Dictionary<string, int>>("DaysSinceLastVisit", GameNetworkManager.Instance.currentSaveFileName);
-                SendSavedDataClientRpc(rvmString, drvString);
-            }
-        }
-    }
-    [HarmonyPatch(typeof(StartOfRound), "OnClientConnect")]
-    public static class SyncRVM2
-    {
-        public static void Postfix()
-        {
-            if (NetworkManager.Singleton.IsHost)
-            {
-                Selenes_Choice.instance.mls.LogInfo("Sending RVM data to new client.");
-                SyncRVM.Instance.SyncDataWithClient();
-                Selenes_Choice.instance.mls.LogInfo("RVM data sent to new client.");
             }
         }
     }
