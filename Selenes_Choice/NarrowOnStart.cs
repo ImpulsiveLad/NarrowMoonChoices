@@ -89,7 +89,7 @@ namespace Selenes_Choice
     {
         static void Postfix()
         {
-            if (!HideMoonsOnStart.OldSave)
+            if (!HideMoonsOnStart.OldSave && Selenes_Choice.Config.DontAutoRouteOnJoin)
             {
                 HideMoonsOnStart.OldSave = true;
                 ES3.Save<bool>("OldSave", HideMoonsOnStart.OldSave, GameNetworkManager.Instance.currentSaveFileName);
