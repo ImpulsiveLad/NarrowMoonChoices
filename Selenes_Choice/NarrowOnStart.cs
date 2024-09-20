@@ -74,7 +74,7 @@ namespace Selenes_Choice
                     OldSave = false;
                     Selenes_Choice.instance.mls.LogInfo("Save does not exist yet");
                 }
-                if (Selenes_Choice.PreviousSafetyMoon != null && Selenes_Choice.PreviousSafetyMoon != LevelManager.CurrentExtendedLevel && !OldSave && NetworkManager.Singleton.IsHost)
+                if (Selenes_Choice.PreviousSafetyMoon != null && Selenes_Choice.PreviousSafetyMoon != LevelManager.CurrentExtendedLevel && (!OldSave || !Selenes_Choice.Config.DontAutoRouteOnJoin) && NetworkManager.Singleton.IsHost)
                 {
                     int PreviousSafetyMoonID = Selenes_Choice.PreviousSafetyMoon.SelectableLevel.levelID;
 
@@ -89,7 +89,7 @@ namespace Selenes_Choice
     {
         static void Postfix()
         {
-            if (!HideMoonsOnStart.OldSave && Selenes_Choice.Config.DontAutoRouteOnJoin)
+            if (!HideMoonsOnStart.OldSave)
             {
                 HideMoonsOnStart.OldSave = true;
                 ES3.Save<bool>("OldSave", HideMoonsOnStart.OldSave, GameNetworkManager.Instance.currentSaveFileName);

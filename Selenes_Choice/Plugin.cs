@@ -19,7 +19,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "2.3.5";
+        private const string modVersion = "2.3.6";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -153,7 +153,7 @@ namespace Selenes_Choice
                 "If set to true, the first free moon selected and the one that will be auto-routed to will always have clear weather.");
 
             DontAutoRouteOnJoin = cfg.BindSyncedEntry("_General_",
-                "Don't Auto-Route on Rejoin",
+                "Dont Auto-Route on Rejoin",
                 false,
                 "If set to true, the ship will not auto-route when reopening an existing save, may cause desync or being on a moon you shouldn't still have access to.");
 
