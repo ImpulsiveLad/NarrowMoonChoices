@@ -28,6 +28,9 @@ If there aren't enough moons in a category to meet the requested count, the rema
 - Should the auto-route moon always have clear weather? (default: false)
   - This works with WeatherRegistry as well.
 
+- Should the ship not auto-route on rejoining an old save? (default: false)
+  - This can prevent leaving a paid moon you have if you don't have permanent moons installed but causes some weird behavior like being on the moon still when its not in the new shuffle.
+
 - Should the shuffle exclude moons that were recently selected? (default: true)
   - Should it only remember the auto-route moon or all moons in the shuffle? (default: only auto-route moon)
   - How many days should the shuffle exclude these moons for? (default: 3 days)
