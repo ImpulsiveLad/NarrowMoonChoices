@@ -51,6 +51,8 @@ namespace Selenes_Choice
         {
             CommonShuffle.ShuffleMoons(StartSeed);
 
+            int NewLevel = -1;
+
             if (TimeOfDay.Instance.daysUntilDeadline == 0)
             {
                 ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
@@ -59,7 +61,9 @@ namespace Selenes_Choice
 
                 if (gordionLevel != LevelManager.CurrentExtendedLevel)
                 {
-                    StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                    if (NetworkManager.Singleton.IsHost)
+                        StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                    NewLevel = CompanyID;
                 }
             }
             else
@@ -78,10 +82,13 @@ namespace Selenes_Choice
                 {
                     int PreviousSafetyMoonID = Selenes_Choice.PreviousSafetyMoon.SelectableLevel.levelID;
 
-                    StartOfRound.Instance.ChangeLevelServerRpc(PreviousSafetyMoonID, Object.FindObjectOfType<Terminal>().groupCredits);
+                    if (NetworkManager.Singleton.IsHost)
+                        StartOfRound.Instance.ChangeLevelServerRpc(PreviousSafetyMoonID, Object.FindObjectOfType<Terminal>().groupCredits);
+                    NewLevel = PreviousSafetyMoonID;
                 }
             }
-            ES3.Save("CurrentPlanetID", StartOfRound.Instance.currentLevelID, GameNetworkManager.Instance.currentSaveFileName);
+            if (NewLevel != -1)
+                ES3.Save("CurrentPlanetID", NewLevel, GameNetworkManager.Instance.currentSaveFileName);
         }
     }
     [HarmonyPatch(typeof(StartOfRound), "EndOfGame")]

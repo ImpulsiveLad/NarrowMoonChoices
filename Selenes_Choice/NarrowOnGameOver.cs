@@ -22,6 +22,8 @@ namespace Selenes_Choice
         {
             CommonShuffle.ShuffleMoons(StartOfRound.Instance.randomMapSeed);
 
+            int NewLevel = -1;
+
             if (TimeOfDay.Instance.daysUntilDeadline == 0)
             {
                 ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
@@ -32,6 +34,7 @@ namespace Selenes_Choice
                 {
                     StartOfRound.Instance.ChangeLevel(CompanyID);
                     StartOfRound.Instance.ChangePlanet();
+                    NewLevel = CompanyID;
                 }
             }
             else
@@ -42,9 +45,11 @@ namespace Selenes_Choice
 
                     StartOfRound.Instance.ChangeLevel(PreviousSafetyMoonID);
                     StartOfRound.Instance.ChangePlanet();
+                    NewLevel = PreviousSafetyMoonID;
                 }
             }
-            ES3.Save("CurrentPlanetID", StartOfRound.Instance.currentLevelID, GameNetworkManager.Instance.currentSaveFileName);
+            if (NewLevel != -1)
+                ES3.Save("CurrentPlanetID", NewLevel, GameNetworkManager.Instance.currentSaveFileName);
         }
     }
 }

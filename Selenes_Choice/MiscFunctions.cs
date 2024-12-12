@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Selenes_Choice
 {
-    public class ShareSnT : NetworkBehaviour // this is all just to transmit 2 variables to late players
+    public class ShareSnT : NetworkBehaviour
     {
         public static ShareSnT Instance { get; private set; }
 

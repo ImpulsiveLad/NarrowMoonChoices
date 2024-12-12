@@ -2,6 +2,7 @@
 using LethalLevelLoader;
 using System.Collections;
 using UnityEngine;
+using Unity.Netcode;
 
 namespace Selenes_Choice
 {
@@ -26,14 +27,18 @@ namespace Selenes_Choice
 
             CommonShuffle.ShuffleMoons(StartOfRound.Instance.randomMapSeed);
 
+            int NewLevel = -1;
+
             if (Selenes_Choice.PreviousSafetyMoon != null && Selenes_Choice.PreviousSafetyMoon != LevelManager.CurrentExtendedLevel)
             {
                 int PreviousSafetyMoonID = Selenes_Choice.PreviousSafetyMoon.SelectableLevel.levelID;
 
-                StartOfRound.Instance.ChangeLevelServerRpc(PreviousSafetyMoonID, Object.FindObjectOfType<Terminal>().groupCredits);
+                if (NetworkManager.Singleton.IsHost)
+                    StartOfRound.Instance.ChangeLevelServerRpc(PreviousSafetyMoonID, Object.FindObjectOfType<Terminal>().groupCredits);
+                NewLevel = PreviousSafetyMoonID;
             }
-
-            ES3.Save("CurrentPlanetID", StartOfRound.Instance.currentLevelID, GameNetworkManager.Instance.currentSaveFileName);
+            if (NewLevel != -1)
+                ES3.Save("CurrentPlanetID", NewLevel, GameNetworkManager.Instance.currentSaveFileName);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "2.3.6";
+        private const string modVersion = "2.4.0";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -57,6 +57,7 @@ namespace Selenes_Choice
             harmony.PatchAll(typeof(HideMoonsOnNewQuota));
             harmony.PatchAll(typeof(AutoRouteToCompany));
             harmony.PatchAll(typeof(KeepWeather));
+            harmony.PatchAll(typeof(SaveAfterRouting));
 
             if (WeatherRegistryCompatibility.enabled)
             {

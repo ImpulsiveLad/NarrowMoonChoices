@@ -43,9 +43,6 @@
     <Reference Include="LethalLevelLoader">
       <HintPath>..\..\..\..\Downloads\LethalLevelLoader.dll</HintPath>
     </Reference>
-    <Reference Include="WeatherRegistry">
-      <HintPath>..\..\..\..\Downloads\WeatherRegistry.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Netcode.Runtime">
       <HintPath>..\..\Arachnophilia\Arachnophilia\bin\Debug\Unity.Netcode.Runtime.dll</HintPath>
     </Reference>
@@ -60,6 +57,9 @@
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="WeatherRegistry">
+      <HintPath>..\..\..\..\Downloads\WeatherRegistry.dll</HintPath>
     </Reference>
   </ItemGroup>
 
