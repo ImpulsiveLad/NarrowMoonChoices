@@ -72,6 +72,7 @@ namespace Selenes_Choice
                 FreMNs += $"{randomFreeLevel.NumberlessPlanetName},";
 
                 UpdateConfig.freeMoonCount--;
+                SafetyType = 0;
             }
             else if (UpdateConfig.randomMoonCount > 0)
             {
@@ -114,6 +115,7 @@ namespace Selenes_Choice
                 RanMNs += $"{Anysafetylevel.NumberlessPlanetName},";
 
                 UpdateConfig.randomMoonCount--;
+                SafetyType = 1;
             }
             else if (UpdateConfig.paidMoonCount > 0)
             {
@@ -156,6 +158,7 @@ namespace Selenes_Choice
                 PaiMNs += $"{paidsafetylevel.NumberlessPlanetName},";
 
                 UpdateConfig.paidMoonCount--;
+                SafetyType = 2;
             }
             else if (UpdateConfig.rareMoonCount > 0)
             {
@@ -198,6 +201,7 @@ namespace Selenes_Choice
                 RarMNs += $"{raresafetylevel.NumberlessPlanetName},";
 
                 UpdateConfig.rareMoonCount--;
+                SafetyType = 3;
             }
             else
             {

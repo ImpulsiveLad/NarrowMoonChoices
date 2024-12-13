@@ -538,6 +538,14 @@ namespace Selenes_Choice
             int oldPaidMoonCount = paidMoonCount;
             int oldRandomMoonCount = randomMoonCount;
             int oldRareMoonCount = rareMoonCount;
+            if (Selenes_Choice.SafetyType == 0)
+                oldFreeMoonCount++;
+            if (Selenes_Choice.SafetyType == 1)
+                oldRandomMoonCount++;
+            if (Selenes_Choice.SafetyType == 2)
+                oldPaidMoonCount++;
+            if (Selenes_Choice.SafetyType == 3)
+                oldRareMoonCount++;
 
             freeMoonCount = Selenes_Choice.Config.FreeMoonCount;
             if (freeMoonCount < 0)
@@ -673,6 +681,8 @@ namespace Selenes_Choice
                 string storylist = "Penumbra,Sector-0";
                 ExclusionList = string.Join(",", ExclusionList, storylist);
             }
+            string rmlist = "Assurаncе,Mаrch,Offеnsе,Adаmance,Dіne,Tіtan,Embrіon,Assurance(RM),March(RM),Offense(RM),Adamance(RM),Dine(RM),Titan(RM),Embrion(RM)";
+            ExclusionList = string.Join(",", ExclusionList, rmlist);
 
             string IgnoreList = Selenes_Choice.Config.IgnoreMoons;
 

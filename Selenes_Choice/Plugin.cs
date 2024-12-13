@@ -19,7 +19,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "2.4.1";
+        private const string modVersion = "2.4.2";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -31,6 +31,8 @@ namespace Selenes_Choice
         public static int glump;
 
         public static ExtendedLevel PreviousSafetyMoon;
+
+        public static int SafetyType = -1;
 
         public new static SyncConfig Config;
 
