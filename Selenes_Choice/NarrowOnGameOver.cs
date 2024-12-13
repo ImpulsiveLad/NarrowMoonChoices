@@ -3,6 +3,7 @@ using LethalLevelLoader;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
+using Unity.Netcode;
 
 namespace Selenes_Choice
 {
@@ -48,7 +49,7 @@ namespace Selenes_Choice
                     NewLevel = PreviousSafetyMoonID;
                 }
             }
-            if (NewLevel != -1)
+            if (NewLevel != -1 && NetworkManager.Singleton.IsHost)
                 ES3.Save("CurrentPlanetID", NewLevel, GameNetworkManager.Instance.currentSaveFileName);
         }
     }

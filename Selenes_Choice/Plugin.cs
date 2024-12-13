@@ -19,7 +19,7 @@ namespace Selenes_Choice
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "2.4.0";
+        private const string modVersion = "2.4.1";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -47,7 +47,6 @@ namespace Selenes_Choice
             harmony.PatchAll(typeof(ListProcessor));
             harmony.PatchAll(typeof(UpdateConfig));
             harmony.PatchAll(typeof(HideMoonsOnStart));
-            harmony.PatchAll(typeof(MarkAsSaved));
             harmony.PatchAll(typeof(HideMoonsOnGameOver));
             harmony.PatchAll(typeof(GlobalVariables));
             harmony.PatchAll(typeof(ShipleaveCalc));
@@ -58,6 +57,7 @@ namespace Selenes_Choice
             harmony.PatchAll(typeof(AutoRouteToCompany));
             harmony.PatchAll(typeof(KeepWeather));
             harmony.PatchAll(typeof(SaveAfterRouting));
+            harmony.PatchAll(typeof(MarkAsSaved));
 
             if (WeatherRegistryCompatibility.enabled)
             {
@@ -108,7 +108,6 @@ namespace Selenes_Choice
         [DataMember] public SyncedEntry<bool> ReturnFrees { get; private set; }
         [DataMember] public SyncedEntry<int> ValueThreshold { get; private set; }
         [DataMember] public SyncedEntry<int> RareMoonCount { get; private set; }
-        [DataMember] public SyncedEntry<bool> DontAutoRouteOnJoin { get; private set; }
         public SyncConfig(ConfigFile cfg) : base("Selenes_Choice")
         {
             ConfigManager.Register(this);
@@ -152,11 +151,6 @@ namespace Selenes_Choice
                 "Clear Weather on the Safety Moon?",
                 false,
                 "If set to true, the first free moon selected and the one that will be auto-routed to will always have clear weather.");
-
-            DontAutoRouteOnJoin = cfg.BindSyncedEntry("_General_",
-                "Dont Auto-Route on Rejoin",
-                false,
-                "If set to true, the ship will not auto-route when reopening an existing save, may cause desync or being on a moon you shouldn't still have access to.");
 
             RememberMoons = cfg.BindSyncedEntry("_Remember Moons_",
                 "Remember Moons?",

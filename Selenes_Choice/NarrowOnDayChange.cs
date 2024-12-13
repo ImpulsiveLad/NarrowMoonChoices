@@ -29,33 +29,33 @@ namespace Selenes_Choice
             CommonShuffle.ShuffleMoons(StartOfRound.Instance.randomMapSeed);
 
             int NewLevel = -1;
-
-            if (TimeOfDay.Instance.daysUntilDeadline == 0)
+            if (NetworkManager.Singleton.IsHost)
             {
-                ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
-
-                int CompanyID = gordionLevel.SelectableLevel.levelID;
-
-                if (gordionLevel != LevelManager.CurrentExtendedLevel)
+                if (TimeOfDay.Instance.daysUntilDeadline == 0)
                 {
-                    if (NetworkManager.Singleton.IsHost)
-                        StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
-                    NewLevel = CompanyID;
-                }
-            }
-            else
-            {
-                if (Selenes_Choice.PreviousSafetyMoon != null && Selenes_Choice.PreviousSafetyMoon != LevelManager.CurrentExtendedLevel)
-                {
-                    int PreviousSafetyMoonID = Selenes_Choice.PreviousSafetyMoon.SelectableLevel.levelID;
+                    ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
 
-                    if (NetworkManager.Singleton.IsHost)
-                        StartOfRound.Instance.ChangeLevelServerRpc(PreviousSafetyMoonID, Object.FindObjectOfType<Terminal>().groupCredits);
-                    NewLevel = PreviousSafetyMoonID;
+                    int CompanyID = gordionLevel.SelectableLevel.levelID;
+
+                    if (gordionLevel != LevelManager.CurrentExtendedLevel)
+                    {
+                        StartOfRound.Instance.ChangeLevelClientRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                        NewLevel = CompanyID;
+                    }
                 }
+                else
+                {
+                    if (Selenes_Choice.PreviousSafetyMoon != null && Selenes_Choice.PreviousSafetyMoon != LevelManager.CurrentExtendedLevel)
+                    {
+                        int PreviousSafetyMoonID = Selenes_Choice.PreviousSafetyMoon.SelectableLevel.levelID;
+
+                        StartOfRound.Instance.ChangeLevelClientRpc(PreviousSafetyMoonID, Object.FindObjectOfType<Terminal>().groupCredits);
+                        NewLevel = PreviousSafetyMoonID;
+                    }
+                }
+                if (NewLevel != -1)
+                    ES3.Save("CurrentPlanetID", NewLevel, GameNetworkManager.Instance.currentSaveFileName);
             }
-            if (NewLevel != -1)
-                ES3.Save("CurrentPlanetID", NewLevel, GameNetworkManager.Instance.currentSaveFileName);
         }
     }
     [HarmonyPatch(typeof(StartOfRound), "PassTimeToNextDay")]
@@ -107,27 +107,28 @@ namespace Selenes_Choice
         }
         static void GoToCompany()
         {
-            if (TimeOfDay.Instance.daysUntilDeadline == 0)
-            {
-                ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
-
-                int CompanyID = gordionLevel.SelectableLevel.levelID;
-
-                if (gordionLevel != LevelManager.CurrentExtendedLevel)
+            if (NetworkManager.Singleton.IsHost)
+                if (TimeOfDay.Instance.daysUntilDeadline == 0)
                 {
-                    if (NetworkManager.Singleton.IsHost)
-                        StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                    ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
+
+                    int CompanyID = gordionLevel.SelectableLevel.levelID;
+
+                    if (gordionLevel != LevelManager.CurrentExtendedLevel)
+                    {
+                        StartOfRound.Instance.ChangeLevelClientRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                    }
+                    ES3.Save("CurrentPlanetID", CompanyID, GameNetworkManager.Instance.currentSaveFileName);
                 }
-                ES3.Save("CurrentPlanetID", CompanyID, GameNetworkManager.Instance.currentSaveFileName);
-            }
         }
     }
-    [HarmonyPatch(typeof(StartOfRound), "ChangeLevelServerRpc")]
+    [HarmonyPatch(typeof(StartOfRound), "ChangeLevelClientRpc")]
     public class SaveAfterRouting
     {
         static void Postfix()
         {
-            ES3.Save("CurrentPlanetID", StartOfRound.Instance.currentLevelID, GameNetworkManager.Instance.currentSaveFileName);
+            if (NetworkManager.Singleton.IsHost)
+                ES3.Save("CurrentPlanetID", StartOfRound.Instance.currentLevelID, GameNetworkManager.Instance.currentSaveFileName);
         }
     }
 }

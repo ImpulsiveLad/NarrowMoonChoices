@@ -52,56 +52,56 @@ namespace Selenes_Choice
             CommonShuffle.ShuffleMoons(StartSeed);
 
             int NewLevel = -1;
-
-            if (TimeOfDay.Instance.daysUntilDeadline == 0)
+            if (NetworkManager.Singleton.IsHost)
             {
-                ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
-
-                int CompanyID = gordionLevel.SelectableLevel.levelID;
-
-                if (gordionLevel != LevelManager.CurrentExtendedLevel)
+                if (TimeOfDay.Instance.daysUntilDeadline == 0)
                 {
-                    if (NetworkManager.Singleton.IsHost)
-                        StartOfRound.Instance.ChangeLevelServerRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
-                    NewLevel = CompanyID;
-                }
-            }
-            else
-            {
-                if (ES3.KeyExists("OldSave", GameNetworkManager.Instance.currentSaveFileName))
-                {
-                    OldSave = ES3.Load<bool>("OldSave", GameNetworkManager.Instance.currentSaveFileName);
-                    Selenes_Choice.instance.mls.LogInfo("Save Exists");
+                    ExtendedLevel gordionLevel = PatchedContent.ExtendedLevels.FirstOrDefault(level => level.NumberlessPlanetName.Equals("Gordion"));
+
+                    int CompanyID = gordionLevel.SelectableLevel.levelID;
+
+                    if (gordionLevel != LevelManager.CurrentExtendedLevel)
+                    {
+                        StartOfRound.Instance.ChangeLevelClientRpc(CompanyID, Object.FindObjectOfType<Terminal>().groupCredits);
+                        NewLevel = CompanyID;
+                    }
                 }
                 else
                 {
-                    OldSave = false;
-                    Selenes_Choice.instance.mls.LogInfo("Save does not exist yet");
-                }
-                if (Selenes_Choice.PreviousSafetyMoon != null && Selenes_Choice.PreviousSafetyMoon != LevelManager.CurrentExtendedLevel && (!OldSave || !Selenes_Choice.Config.DontAutoRouteOnJoin) && NetworkManager.Singleton.IsHost)
-                {
-                    int PreviousSafetyMoonID = Selenes_Choice.PreviousSafetyMoon.SelectableLevel.levelID;
+                    if (ES3.KeyExists("OldSave", GameNetworkManager.Instance.currentSaveFileName))
+                    {
+                        OldSave = ES3.Load<bool>("OldSave", GameNetworkManager.Instance.currentSaveFileName);
+                        Selenes_Choice.instance.mls.LogInfo("Save Exists");
+                    }
+                    else
+                    {
+                        OldSave = false;
+                        Selenes_Choice.instance.mls.LogInfo("Save does not exist yet");
+                    }
+                    if (Selenes_Choice.PreviousSafetyMoon != null && Selenes_Choice.PreviousSafetyMoon != LevelManager.CurrentExtendedLevel && !OldSave)
+                    {
+                        int PreviousSafetyMoonID = Selenes_Choice.PreviousSafetyMoon.SelectableLevel.levelID;
 
-                    if (NetworkManager.Singleton.IsHost)
-                        StartOfRound.Instance.ChangeLevelServerRpc(PreviousSafetyMoonID, Object.FindObjectOfType<Terminal>().groupCredits);
-                    NewLevel = PreviousSafetyMoonID;
+                        StartOfRound.Instance.ChangeLevelClientRpc(PreviousSafetyMoonID, Object.FindObjectOfType<Terminal>().groupCredits);
+                        NewLevel = PreviousSafetyMoonID;
+                    }
                 }
+                if (NewLevel != -1)
+                    ES3.Save("CurrentPlanetID", NewLevel, GameNetworkManager.Instance.currentSaveFileName);
             }
-            if (NewLevel != -1)
-                ES3.Save("CurrentPlanetID", NewLevel, GameNetworkManager.Instance.currentSaveFileName);
         }
     }
-    [HarmonyPatch(typeof(StartOfRound), "EndOfGame")]
+    [HarmonyPatch(typeof(StartOfRound), "ChangeLevelClientRpc")]
     public class MarkAsSaved
     {
         static void Postfix()
         {
-            if (!HideMoonsOnStart.OldSave)
-            {
-                HideMoonsOnStart.OldSave = true;
-                ES3.Save<bool>("OldSave", HideMoonsOnStart.OldSave, GameNetworkManager.Instance.currentSaveFileName);
-                Selenes_Choice.instance.mls.LogInfo("Saving Save");
-            }
+            if (NetworkManager.Singleton.IsHost)
+                if (!ES3.KeyExists("OldSave", GameNetworkManager.Instance.currentSaveFileName))
+                {
+                    ES3.Save<bool>("OldSave", true, GameNetworkManager.Instance.currentSaveFileName);
+                    Selenes_Choice.instance.mls.LogInfo("Saving Save");
+                }
         }
     }
 }

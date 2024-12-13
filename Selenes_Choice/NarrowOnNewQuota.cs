@@ -28,17 +28,18 @@ namespace Selenes_Choice
             CommonShuffle.ShuffleMoons(StartOfRound.Instance.randomMapSeed);
 
             int NewLevel = -1;
-
-            if (Selenes_Choice.PreviousSafetyMoon != null && Selenes_Choice.PreviousSafetyMoon != LevelManager.CurrentExtendedLevel)
+            if (NetworkManager.Singleton.IsHost)
             {
-                int PreviousSafetyMoonID = Selenes_Choice.PreviousSafetyMoon.SelectableLevel.levelID;
+                if (Selenes_Choice.PreviousSafetyMoon != null && Selenes_Choice.PreviousSafetyMoon != LevelManager.CurrentExtendedLevel)
+                {
+                    int PreviousSafetyMoonID = Selenes_Choice.PreviousSafetyMoon.SelectableLevel.levelID;
 
-                if (NetworkManager.Singleton.IsHost)
-                    StartOfRound.Instance.ChangeLevelServerRpc(PreviousSafetyMoonID, Object.FindObjectOfType<Terminal>().groupCredits);
-                NewLevel = PreviousSafetyMoonID;
+                    StartOfRound.Instance.ChangeLevelClientRpc(PreviousSafetyMoonID, Object.FindObjectOfType<Terminal>().groupCredits);
+                    NewLevel = PreviousSafetyMoonID;
+                }
+                if (NewLevel != -1)
+                    ES3.Save("CurrentPlanetID", NewLevel, GameNetworkManager.Instance.currentSaveFileName);
             }
-            if (NewLevel != -1)
-                ES3.Save("CurrentPlanetID", NewLevel, GameNetworkManager.Instance.currentSaveFileName);
         }
     }
 }
