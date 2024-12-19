@@ -1,11 +1,11 @@
 ﻿using HarmonyLib;
-using System.Linq;
-using UnityEngine;
-using Unity.Collections;
-using Unity.Netcode;
 using LethalLevelLoader;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using Unity.Collections;
+using Unity.Netcode;
+using UnityEngine;
 
 namespace Selenes_Choice
 {
@@ -184,6 +184,7 @@ namespace Selenes_Choice
         public static Dictionary<ExtendedLevel, int> ListStatus = new Dictionary<ExtendedLevel, int>(); // for logging
 
         public static bool LoadedSaveData = false; // marks if it has checked for save data and if so, loaded it
+        public static bool IntegratedPM = false; // Permanent moons compat
         public static bool IncreaseDays = false; // so it doesn't increase the DRV values on joining
         public static string MoonStatusUpdate = "RVL Status:"; // logging
 
@@ -389,6 +390,28 @@ namespace Selenes_Choice
 
             List<ExtendedLevel> Levels = PatchedContent.ExtendedLevels.Where(level => !ListProcessor.Instance.ExclusionList.Split(',').Any(b => level.NumberlessPlanetName.Equals(b))).ToList();
             List<ExtendedLevel> allLevels = Levels.Where(level => !RecentlyVisitedMoons.Contains(level)).ToList(); // every level available to the shuffle
+
+            if (NetworkManager.Singleton.IsHost)
+                if (!IntegratedPM && PermanentMoonsCompatibility.enabled)
+                {
+                    Dictionary<string, object> save = PermanentMoonsCompatibility.GrabPMList();
+                    if (save.ContainsKey("UnlockedMoons"))
+                    {
+                        List<string> PlanetNames = (List<string>)save["UnlockedMoons"];
+                        foreach (string planetname in PlanetNames)
+                            foreach (ExtendedLevel level in allLevels)
+                                if (planetname == level.SelectableLevel.PlanetName.ToLower())
+                                {
+                                    level.RoutePrice = 0;
+                                    Selenes_Choice.instance.mls.LogInfo($"Made level: {level.SelectableLevel.PlanetName} free");
+                                }
+                    }
+                    else
+                        Selenes_Choice.instance.mls.LogInfo("No PM data");
+                    IntegratedPM = true;
+                }
+                else
+                    Selenes_Choice.instance.mls.LogInfo("PM not installed (or integrated already)");
 
             List<ExtendedLevel> freeLevels = allLevels.Where(level => level.RoutePrice == 0).ToList(); // free levels that can be shuffled
             List<ExtendedLevel> FreeRVMs = RecentlyVisitedMoons.Where(level => level.RoutePrice == 0).ToList();
@@ -652,6 +675,7 @@ namespace Selenes_Choice
                 DRVString.Clear();
                 levelsToRemove.Clear();
                 ListStatus.Clear();
+                IntegratedPM = false;
             }
         }
     }

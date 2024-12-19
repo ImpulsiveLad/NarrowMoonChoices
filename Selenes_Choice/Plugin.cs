@@ -1,25 +1,29 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using HarmonyLib;
 using CSync.Extensions;
 using CSync.Lib;
-using System.Runtime.Serialization;
+using HarmonyLib;
 using LethalLevelLoader;
-using static Selenes_Choice.UpdateConfig;
+using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
+using UnityEngine;
+using static Selenes_Choice.UpdateConfig;
 
 namespace Selenes_Choice
 {
     [BepInPlugin(modGUID, modName, modVersion)]
+    [BepInDependency("imabatby.lethallevelloader", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.sigurd.csync", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("mrov.WeatherRegistry", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("BULLETBOT.PermanentMoons", BepInDependency.DependencyFlags.SoftDependency)]
     public class Selenes_Choice : BaseUnityPlugin
     {
         private const string modGUID = "impulse.Selenes_Choice";
         private const string modName = "SelenesChoice";
-        private const string modVersion = "2.4.2";
+        private const string modVersion = "2.4.3";
         private readonly Harmony harmony = new Harmony(modGUID);
 
         public ManualLogSource mls;
@@ -250,6 +254,28 @@ namespace Selenes_Choice
         public static void ClearWeatherWithWR(ExtendedLevel level)
         {
             WeatherRegistry.WeatherController.ChangeWeather(level.SelectableLevel, LevelWeatherType.None);
+        }
+    }
+    public static class PermanentMoonsCompatibility
+    {
+        private static bool? _enabled;
+
+        public static bool enabled
+        {
+            get
+            {
+                if (_enabled == null)
+                {
+                    _enabled = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("BULLETBOT.PermanentMoons");
+                }
+                return (bool)_enabled;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static Dictionary<string, object> GrabPMList()
+        {
+            return Plugin.GetSave();
         }
     }
 }

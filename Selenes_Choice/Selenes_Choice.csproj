@@ -43,6 +43,9 @@
     <Reference Include="LethalLevelLoader">
       <HintPath>..\..\..\..\Downloads\LethalLevelLoader.dll</HintPath>
     </Reference>
+    <Reference Include="PermanentMoons" Publicize="true">
+      <HintPath>..\..\..\..\Downloads\PermanentMoons.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Netcode.Runtime">
       <HintPath>..\..\Arachnophilia\Arachnophilia\bin\Debug\Unity.Netcode.Runtime.dll</HintPath>
     </Reference>
